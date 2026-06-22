@@ -27,6 +27,7 @@ import code.name.monkey.retromusic.activities.MainActivity
 import code.name.monkey.retromusic.appwidgets.base.BaseAppWidget
 import code.name.monkey.retromusic.extensions.getTintedDrawable
 import code.name.monkey.retromusic.service.MusicService
+import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_SONG
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_REWIND
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_SKIP
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
@@ -52,6 +53,13 @@ class AppWidgetText : BaseAppWidget() {
         appWidgetView.setImageViewBitmap(
             R.id.button_toggle_play_pause,
             context.getTintedDrawable(R.drawable.ic_play_arrow_white_32dp, ContextCompat.getColor(
+                context, code.name.monkey.appthemehelper.R.color.md_white_1000
+            )
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_delete,
+            context.getTintedDrawable(R.drawable.ic_delete, ContextCompat.getColor(
                 context, code.name.monkey.appthemehelper.R.color.md_white_1000
             )
             ).toBitmap()
@@ -99,6 +107,10 @@ class AppWidgetText : BaseAppWidget() {
         // Next track
         pendingIntent = buildPendingIntent(context, ACTION_SKIP, serviceName)
         views.setOnClickPendingIntent(R.id.button_next, pendingIntent)
+
+        // Delete current song from queue
+        pendingIntent = buildPendingIntent(context, ACTION_DELETE_SONG, serviceName)
+        views.setOnClickPendingIntent(R.id.button_delete, pendingIntent)
     }
 
     override fun performUpdate(service: MusicService, appWidgetIds: IntArray?) {
@@ -141,6 +153,15 @@ class AppWidgetText : BaseAppWidget() {
             R.id.button_prev,
             service.getTintedDrawable(
                 R.drawable.ic_skip_previous,
+                ContextCompat.getColor(
+                    service, code.name.monkey.appthemehelper.R.color.md_white_1000
+                )
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_delete,
+            service.getTintedDrawable(
+                R.drawable.ic_delete,
                 ContextCompat.getColor(
                     service, code.name.monkey.appthemehelper.R.color.md_white_1000
                 )

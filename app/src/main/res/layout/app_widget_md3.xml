@@ -63,6 +63,16 @@
                 tools:src="@drawable/ic_skip_next"
                 tools:tint="@color/ate_secondary_text_dark" />
 
+            <ImageButton
+                android:id="@+id/button_delete"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/widget_selector"
+                android:contentDescription="@string/action_delete_from_queue"
+                tools:src="@drawable/ic_delete"
+                tools:tint="@color/ate_secondary_text_dark" />
+
         </LinearLayout>
 
         <LinearLayout

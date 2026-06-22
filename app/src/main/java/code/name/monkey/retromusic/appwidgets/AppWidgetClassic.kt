@@ -35,6 +35,7 @@ import code.name.monkey.retromusic.glide.RetroGlideExtension.asBitmapPalette
 import code.name.monkey.retromusic.glide.RetroGlideExtension.songCoverOptions
 import code.name.monkey.retromusic.glide.palette.BitmapPaletteWrapper
 import code.name.monkey.retromusic.service.MusicService
+import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_SONG
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_REWIND
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_SKIP
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
@@ -77,6 +78,13 @@ class AppWidgetClassic : BaseAppWidget() {
 
             context.getTintedDrawable(
                 R.drawable.ic_play_arrow_white_32dp,
+                MaterialValueHelper.getSecondaryTextColor(context, true)
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_delete,
+            context.getTintedDrawable(
+                R.drawable.ic_delete,
                 MaterialValueHelper.getSecondaryTextColor(context, true)
             ).toBitmap()
         )
@@ -179,6 +187,13 @@ class AppWidgetClassic : BaseAppWidget() {
                                 color
                             ).toBitmap()
                         )
+                        appWidgetView.setImageViewBitmap(
+                            R.id.button_delete,
+                            service.getTintedDrawable(
+                                R.drawable.ic_delete,
+                                color
+                            ).toBitmap()
+                        )
 
                         val image = getAlbumArtDrawable(service, bitmap)
                         val roundedBitmap =
@@ -230,6 +245,10 @@ class AppWidgetClassic : BaseAppWidget() {
         // Next track
         pendingIntent = buildPendingIntent(context, ACTION_SKIP, serviceName)
         views.setOnClickPendingIntent(R.id.button_next, pendingIntent)
+
+        // Delete current song from queue
+        pendingIntent = buildPendingIntent(context, ACTION_DELETE_SONG, serviceName)
+        views.setOnClickPendingIntent(R.id.button_delete, pendingIntent)
     }
 
     companion object {

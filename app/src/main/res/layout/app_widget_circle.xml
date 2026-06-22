@@ -42,4 +42,19 @@
         android:padding="18dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_play_arrow" />
+
+    <ImageButton
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignBottom="@+id/image"
+        android:layout_margin="4dp"
+        android:background="@drawable/widget_button_background"
+        android:backgroundTint="?attr/colorSurface"
+        android:clickable="false"
+        android:contentDescription="@string/action_delete_from_queue"
+        android:padding="14dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_delete" />
 </RelativeLayout>

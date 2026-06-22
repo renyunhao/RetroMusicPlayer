@@ -33,6 +33,7 @@ import code.name.monkey.retromusic.glide.RetroGlideExtension.asBitmapPalette
 import code.name.monkey.retromusic.glide.RetroGlideExtension.songCoverOptions
 import code.name.monkey.retromusic.glide.palette.BitmapPaletteWrapper
 import code.name.monkey.retromusic.service.MusicService
+import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_SONG
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
 import code.name.monkey.retromusic.service.MusicService.Companion.TOGGLE_FAVORITE
 import code.name.monkey.retromusic.util.MusicUtil
@@ -65,6 +66,13 @@ class AppWidgetCircle : BaseAppWidget() {
                 secondaryColor
             ).toBitmap()
         )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_delete,
+            context.getTintedDrawable(
+                R.drawable.ic_delete,
+                secondaryColor
+            ).toBitmap()
+        )
 
         linkButtons(context, appWidgetView)
         pushUpdate(context, appWidgetIds, appWidgetView)
@@ -86,6 +94,13 @@ class AppWidgetCircle : BaseAppWidget() {
             R.id.button_toggle_play_pause,
             service.getTintedDrawable(
                 playPauseRes,
+                MaterialValueHelper.getSecondaryTextColor(service, true)
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_delete,
+            service.getTintedDrawable(
+                R.drawable.ic_delete,
                 MaterialValueHelper.getSecondaryTextColor(service, true)
             ).toBitmap()
         )
@@ -158,6 +173,12 @@ class AppWidgetCircle : BaseAppWidget() {
                                 favoriteRes, color
                             ).toBitmap()
                         )
+                        appWidgetView.setImageViewBitmap(
+                            R.id.button_delete,
+                            service.getTintedDrawable(
+                                R.drawable.ic_delete, color
+                            ).toBitmap()
+                        )
                         if (bitmap != null) {
                             appWidgetView.setImageViewBitmap(R.id.image, bitmap)
                         }
@@ -196,6 +217,10 @@ class AppWidgetCircle : BaseAppWidget() {
         // Play and pause
         pendingIntent = buildPendingIntent(context, ACTION_TOGGLE_PAUSE, serviceName)
         views.setOnClickPendingIntent(R.id.button_toggle_play_pause, pendingIntent)
+
+        // Delete current song from queue
+        pendingIntent = buildPendingIntent(context, ACTION_DELETE_SONG, serviceName)
+        views.setOnClickPendingIntent(R.id.button_delete, pendingIntent)
     }
 
     companion object {

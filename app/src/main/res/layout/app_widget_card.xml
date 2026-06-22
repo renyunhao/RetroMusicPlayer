@@ -91,5 +91,15 @@
             tools:src="@drawable/ic_skip_next"
             tools:tint="@color/ate_secondary_text_light" />
 
+        <ImageButton
+            android:id="@+id/button_delete"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_selector_light"
+            android:contentDescription="@string/action_delete_from_queue"
+            tools:src="@drawable/ic_delete"
+            tools:tint="@color/ate_secondary_text_light" />
+
     </LinearLayout>
 </LinearLayout>

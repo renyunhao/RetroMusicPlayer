@@ -716,6 +716,7 @@ class MusicService : MediaBrowserServiceCompat(),
 
                     ACTION_PENDING_QUIT -> pendingQuit = true
                     TOGGLE_FAVORITE -> toggleFavorite()
+                    ACTION_DELETE_SONG -> deleteCurrentSong()
                 }
             }
         }
@@ -868,6 +869,27 @@ class MusicService : MediaBrowserServiceCompat(),
             toggleFavorite(currentSong)
             LocalBroadcastManager.getInstance(this@MusicService)
                 .sendBroadcast(Intent(FAVORITE_STATE_CHANGED))
+        }
+    }
+
+    private fun deleteCurrentSong() {
+        val song = currentSong
+        if (song == emptySong) return
+
+        val wasPlaying = isPlaying
+        val currentPosition = getPosition()
+
+        removeSong(song)
+
+        if (playingQueue.isEmpty()) {
+            stopForegroundAndNotification()
+        } else if (wasPlaying) {
+            val newPosition = currentPosition.coerceAtMost(playingQueue.size - 1)
+            playSongAt(newPosition)
+        }
+
+        serviceScope.launch(IO) {
+            MusicUtil.deleteTracks(this@MusicService, listOf(song))
         }
     }
 
@@ -1466,6 +1488,7 @@ class MusicService : MediaBrowserServiceCompat(),
         const val CYCLE_REPEAT = "$RETRO_MUSIC_PACKAGE_NAME.cyclerepeat"
         const val TOGGLE_SHUFFLE = "$RETRO_MUSIC_PACKAGE_NAME.toggleshuffle"
         const val TOGGLE_FAVORITE = "$RETRO_MUSIC_PACKAGE_NAME.togglefavorite"
+        const val ACTION_DELETE_SONG = "$RETRO_MUSIC_PACKAGE_NAME.deletesong"
         const val SAVED_POSITION = "POSITION"
         const val SAVED_POSITION_IN_TRACK = "POSITION_IN_TRACK"
         const val SAVED_SHUFFLE_MODE = "SHUFFLE_MODE"
