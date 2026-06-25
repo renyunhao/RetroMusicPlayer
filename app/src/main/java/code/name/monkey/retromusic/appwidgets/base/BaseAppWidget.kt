@@ -35,6 +35,8 @@ import code.name.monkey.retromusic.service.MusicService.Companion.EXTRA_APP_WIDG
 import code.name.monkey.retromusic.service.MusicService.Companion.FAVORITE_STATE_CHANGED
 import code.name.monkey.retromusic.service.MusicService.Companion.META_CHANGED
 import code.name.monkey.retromusic.service.MusicService.Companion.PLAY_STATE_CHANGED
+import code.name.monkey.retromusic.service.MusicService.Companion.REPEAT_MODE_CHANGED
+import code.name.monkey.retromusic.service.MusicService.Companion.SHUFFLE_MODE_CHANGED
 
 abstract class BaseAppWidget : AppWidgetProvider() {
 
@@ -59,7 +61,10 @@ abstract class BaseAppWidget : AppWidgetProvider() {
      */
     fun notifyChange(service: MusicService, what: String) {
         if (hasInstances(service)) {
-            if (META_CHANGED == what || PLAY_STATE_CHANGED == what || FAVORITE_STATE_CHANGED == what) {
+            if (META_CHANGED == what || PLAY_STATE_CHANGED == what ||
+                FAVORITE_STATE_CHANGED == what || REPEAT_MODE_CHANGED == what ||
+                SHUFFLE_MODE_CHANGED == what
+            ) {
                 performUpdate(service, null)
             }
         }
@@ -127,6 +132,18 @@ abstract class BaseAppWidget : AppWidgetProvider() {
         }
         builder.append(song.albumName)
         return builder.toString()
+    }
+
+    /**
+     * Resolve the drawable that represents the current repeat mode, mirroring the player UI:
+     * REPEAT_MODE_THIS shows [R.drawable.ic_repeat_one], everything else shows [R.drawable.ic_repeat].
+     */
+    protected fun getRepeatDrawable(service: MusicService): Int {
+        return if (service.repeatMode == MusicService.REPEAT_MODE_THIS) {
+            R.drawable.ic_repeat_one
+        } else {
+            R.drawable.ic_repeat
+        }
     }
 
     companion object {

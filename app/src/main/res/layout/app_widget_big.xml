@@ -22,6 +22,17 @@
         android:orientation="horizontal">
 
         <ImageButton
+            android:id="@+id/button_repeat"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_selector_dark"
+            android:padding="22dp"
+            tools:ignore="ContentDescription"
+            tools:src="@drawable/ic_repeat"
+            tools:tint="@color/ate_primary_text_dark" />
+
+        <ImageButton
             android:id="@+id/button_prev"
             android:layout_width="72dp"
             android:layout_height="72dp"
@@ -63,6 +74,17 @@
             android:contentDescription="@string/action_delete_from_queue"
             android:padding="22dp"
             tools:src="@drawable/ic_delete"
+            tools:tint="@color/ate_primary_text_dark" />
+
+        <ImageButton
+            android:id="@+id/button_shuffle"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_selector_dark"
+            android:padding="22dp"
+            tools:ignore="ContentDescription"
+            tools:src="@drawable/ic_shuffle"
             tools:tint="@color/ate_primary_text_dark" />
 
 

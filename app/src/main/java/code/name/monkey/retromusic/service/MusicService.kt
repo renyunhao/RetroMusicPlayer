@@ -717,6 +717,8 @@ class MusicService : MediaBrowserServiceCompat(),
                     ACTION_PENDING_QUIT -> pendingQuit = true
                     TOGGLE_FAVORITE -> toggleFavorite()
                     ACTION_DELETE_SONG -> deleteCurrentSong()
+                    CYCLE_REPEAT -> cycleRepeatMode()
+                    TOGGLE_SHUFFLE -> toggleShuffle()
                 }
             }
         }

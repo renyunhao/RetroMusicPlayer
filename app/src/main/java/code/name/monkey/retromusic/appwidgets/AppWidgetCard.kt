@@ -38,6 +38,8 @@ import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_REWIND
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_SKIP
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
+import code.name.monkey.retromusic.service.MusicService.Companion.CYCLE_REPEAT
+import code.name.monkey.retromusic.service.MusicService.Companion.TOGGLE_SHUFFLE
 import code.name.monkey.retromusic.util.PreferenceUtil
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -82,6 +84,20 @@ class AppWidgetCard : BaseAppWidget() {
             R.id.button_delete,
             context.getTintedDrawable(
                 R.drawable.ic_delete,
+                secondaryColor
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_repeat,
+            context.getTintedDrawable(
+                R.drawable.ic_repeat,
+                secondaryColor
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_shuffle,
+            context.getTintedDrawable(
+                R.drawable.ic_shuffle,
                 secondaryColor
             ).toBitmap()
         )
@@ -131,6 +147,20 @@ class AppWidgetCard : BaseAppWidget() {
             R.id.button_prev,
             service.getTintedDrawable(
                 R.drawable.ic_skip_previous,
+                MaterialValueHelper.getSecondaryTextColor(service, true)
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_repeat,
+            service.getTintedDrawable(
+                getRepeatDrawable(service),
+                MaterialValueHelper.getSecondaryTextColor(service, true)
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_shuffle,
+            service.getTintedDrawable(
+                R.drawable.ic_shuffle,
                 MaterialValueHelper.getSecondaryTextColor(service, true)
             ).toBitmap()
         )
@@ -201,6 +231,14 @@ class AppWidgetCard : BaseAppWidget() {
                             R.id.button_delete,
                             service.getTintedDrawable(R.drawable.ic_delete, color).toBitmap()
                         )
+                        appWidgetView.setImageViewBitmap(
+                            R.id.button_repeat,
+                            service.getTintedDrawable(getRepeatDrawable(service), color).toBitmap()
+                        )
+                        appWidgetView.setImageViewBitmap(
+                            R.id.button_shuffle,
+                            service.getTintedDrawable(R.drawable.ic_shuffle, color).toBitmap()
+                        )
 
                         val image = getAlbumArtDrawable(service, bitmap)
                         val roundedBitmap = createRoundedBitmap(
@@ -235,6 +273,10 @@ class AppWidgetCard : BaseAppWidget() {
         views.setOnClickPendingIntent(R.id.image, pendingIntent)
         views.setOnClickPendingIntent(R.id.media_titles, pendingIntent)
 
+        // Cycle repeat mode
+        pendingIntent = buildPendingIntent(context, CYCLE_REPEAT, serviceName)
+        views.setOnClickPendingIntent(R.id.button_repeat, pendingIntent)
+
         // Previous track
         pendingIntent = buildPendingIntent(context, ACTION_REWIND, serviceName)
         views.setOnClickPendingIntent(R.id.button_prev, pendingIntent)
@@ -250,6 +292,10 @@ class AppWidgetCard : BaseAppWidget() {
         // Delete current song from queue
         pendingIntent = buildPendingIntent(context, ACTION_DELETE_SONG, serviceName)
         views.setOnClickPendingIntent(R.id.button_delete, pendingIntent)
+
+        // Toggle shuffle mode
+        pendingIntent = buildPendingIntent(context, TOGGLE_SHUFFLE, serviceName)
+        views.setOnClickPendingIntent(R.id.button_shuffle, pendingIntent)
     }
 
     companion object {

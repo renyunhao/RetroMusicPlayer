@@ -32,6 +32,15 @@
             android:paddingBottom="8dp">
 
             <ImageButton
+                android:id="@+id/button_repeat"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/widget_selector"
+                tools:src="@drawable/ic_repeat"
+                tools:tint="@color/ate_secondary_text_dark" />
+
+            <ImageButton
                 android:id="@+id/button_prev"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -66,6 +75,15 @@
                 android:background="@drawable/widget_selector"
                 android:contentDescription="@string/action_delete_from_queue"
                 tools:src="@drawable/ic_delete"
+                tools:tint="@color/ate_secondary_text_dark" />
+
+            <ImageButton
+                android:id="@+id/button_shuffle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/widget_selector"
+                tools:src="@drawable/ic_shuffle"
                 tools:tint="@color/ate_secondary_text_dark" />
 
         </LinearLayout>

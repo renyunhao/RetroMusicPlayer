@@ -31,6 +31,8 @@ import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_REWIND
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_SKIP
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
+import code.name.monkey.retromusic.service.MusicService.Companion.CYCLE_REPEAT
+import code.name.monkey.retromusic.service.MusicService.Companion.TOGGLE_SHUFFLE
 import code.name.monkey.retromusic.util.PreferenceUtil
 
 class AppWidgetText : BaseAppWidget() {
@@ -60,6 +62,20 @@ class AppWidgetText : BaseAppWidget() {
         appWidgetView.setImageViewBitmap(
             R.id.button_delete,
             context.getTintedDrawable(R.drawable.ic_delete, ContextCompat.getColor(
+                context, code.name.monkey.appthemehelper.R.color.md_white_1000
+            )
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_repeat,
+            context.getTintedDrawable(R.drawable.ic_repeat, ContextCompat.getColor(
+                context, code.name.monkey.appthemehelper.R.color.md_white_1000
+            )
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_shuffle,
+            context.getTintedDrawable(R.drawable.ic_shuffle, ContextCompat.getColor(
                 context, code.name.monkey.appthemehelper.R.color.md_white_1000
             )
             ).toBitmap()
@@ -96,6 +112,10 @@ class AppWidgetText : BaseAppWidget() {
         views.setOnClickPendingIntent(R.id.image, pendingIntent)
         views.setOnClickPendingIntent(R.id.media_titles, pendingIntent)
 
+        // Cycle repeat mode
+        pendingIntent = buildPendingIntent(context, CYCLE_REPEAT, serviceName)
+        views.setOnClickPendingIntent(R.id.button_repeat, pendingIntent)
+
         // Previous track
         pendingIntent = buildPendingIntent(context, ACTION_REWIND, serviceName)
         views.setOnClickPendingIntent(R.id.button_prev, pendingIntent)
@@ -111,6 +131,10 @@ class AppWidgetText : BaseAppWidget() {
         // Delete current song from queue
         pendingIntent = buildPendingIntent(context, ACTION_DELETE_SONG, serviceName)
         views.setOnClickPendingIntent(R.id.button_delete, pendingIntent)
+
+        // Toggle shuffle mode
+        pendingIntent = buildPendingIntent(context, TOGGLE_SHUFFLE, serviceName)
+        views.setOnClickPendingIntent(R.id.button_shuffle, pendingIntent)
     }
 
     override fun performUpdate(service: MusicService, appWidgetIds: IntArray?) {
@@ -162,6 +186,24 @@ class AppWidgetText : BaseAppWidget() {
             R.id.button_delete,
             service.getTintedDrawable(
                 R.drawable.ic_delete,
+                ContextCompat.getColor(
+                    service, code.name.monkey.appthemehelper.R.color.md_white_1000
+                )
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_repeat,
+            service.getTintedDrawable(
+                getRepeatDrawable(service),
+                ContextCompat.getColor(
+                    service, code.name.monkey.appthemehelper.R.color.md_white_1000
+                )
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_shuffle,
+            service.getTintedDrawable(
+                R.drawable.ic_shuffle,
                 ContextCompat.getColor(
                     service, code.name.monkey.appthemehelper.R.color.md_white_1000
                 )

@@ -35,6 +35,8 @@ import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_REWIND
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_SKIP
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
+import code.name.monkey.retromusic.service.MusicService.Companion.CYCLE_REPEAT
+import code.name.monkey.retromusic.service.MusicService.Companion.TOGGLE_SHUFFLE
 import code.name.monkey.retromusic.util.PreferenceUtil
 import code.name.monkey.retromusic.util.RetroUtil
 import com.bumptech.glide.Glide
@@ -83,6 +85,20 @@ class AppWidgetBig : BaseAppWidget() {
             R.id.button_delete,
             context.getTintedDrawable(
                 R.drawable.ic_delete,
+                MaterialValueHelper.getPrimaryTextColor(context, false)
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_repeat,
+            context.getTintedDrawable(
+                R.drawable.ic_repeat,
+                MaterialValueHelper.getPrimaryTextColor(context, false)
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_shuffle,
+            context.getTintedDrawable(
+                R.drawable.ic_shuffle,
                 MaterialValueHelper.getPrimaryTextColor(context, false)
             ).toBitmap()
         )
@@ -154,6 +170,20 @@ class AppWidgetBig : BaseAppWidget() {
                 primaryColor
             ).toBitmap()
         )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_repeat,
+            service.getTintedDrawable(
+                getRepeatDrawable(service),
+                primaryColor
+            ).toBitmap()
+        )
+        appWidgetView.setImageViewBitmap(
+            R.id.button_shuffle,
+            service.getTintedDrawable(
+                R.drawable.ic_shuffle,
+                primaryColor
+            ).toBitmap()
+        )
 
         // Link actions buttons to intents
         linkButtons(service, appWidgetView)
@@ -220,6 +250,10 @@ class AppWidgetBig : BaseAppWidget() {
             )
         views.setOnClickPendingIntent(R.id.clickable_area, pendingIntent)
 
+        // Cycle repeat mode
+        pendingIntent = buildPendingIntent(context, CYCLE_REPEAT, serviceName)
+        views.setOnClickPendingIntent(R.id.button_repeat, pendingIntent)
+
         // Previous track
         pendingIntent = buildPendingIntent(context, ACTION_REWIND, serviceName)
         views.setOnClickPendingIntent(R.id.button_prev, pendingIntent)
@@ -235,6 +269,10 @@ class AppWidgetBig : BaseAppWidget() {
         // Delete current song from queue
         pendingIntent = buildPendingIntent(context, ACTION_DELETE_SONG, serviceName)
         views.setOnClickPendingIntent(R.id.button_delete, pendingIntent)
+
+        // Toggle shuffle mode
+        pendingIntent = buildPendingIntent(context, TOGGLE_SHUFFLE, serviceName)
+        views.setOnClickPendingIntent(R.id.button_shuffle, pendingIntent)
     }
 
     companion object {
