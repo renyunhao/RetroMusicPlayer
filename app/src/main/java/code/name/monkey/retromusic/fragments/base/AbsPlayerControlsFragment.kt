@@ -35,6 +35,7 @@ import code.name.monkey.retromusic.fragments.MusicSeekSkipTouchListener
 import code.name.monkey.retromusic.fragments.other.VolumeFragment
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
 import code.name.monkey.retromusic.helper.MusicProgressViewUpdateHelper
+import code.name.monkey.retromusic.helper.ShuffleRepeatUIHelper
 import code.name.monkey.retromusic.service.MusicService
 import code.name.monkey.retromusic.util.MusicUtil
 import code.name.monkey.retromusic.util.PreferenceUtil
@@ -218,38 +219,11 @@ abstract class AbsPlayerControlsFragment(@LayoutRes layout: Int) : AbsMusicServi
     }
 
     fun updateShuffleState() {
-        shuffleButton.setColorFilter(
-            when (MusicPlayerRemote.shuffleMode) {
-                MusicService.SHUFFLE_MODE_SHUFFLE -> lastPlaybackControlsColor
-                else -> lastDisabledPlaybackControlsColor
-            }, PorterDuff.Mode.SRC_IN
-        )
+        ShuffleRepeatUIHelper.updateShuffleState(shuffleButton, lastPlaybackControlsColor, lastDisabledPlaybackControlsColor)
     }
 
     fun updateRepeatState() {
-        when (MusicPlayerRemote.repeatMode) {
-            MusicService.REPEAT_MODE_NONE -> {
-                repeatButton.setImageResource(R.drawable.ic_repeat)
-                repeatButton.setColorFilter(
-                    lastDisabledPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
-            MusicService.REPEAT_MODE_ALL -> {
-                repeatButton.setImageResource(R.drawable.ic_repeat)
-                repeatButton.setColorFilter(
-                    lastPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
-            MusicService.REPEAT_MODE_THIS -> {
-                repeatButton.setImageResource(R.drawable.ic_repeat_one)
-                repeatButton.setColorFilter(
-                    lastPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
-        }
+        ShuffleRepeatUIHelper.updateRepeatState(repeatButton, lastPlaybackControlsColor, lastDisabledPlaybackControlsColor)
     }
 
     protected var volumeFragment: VolumeFragment? = null

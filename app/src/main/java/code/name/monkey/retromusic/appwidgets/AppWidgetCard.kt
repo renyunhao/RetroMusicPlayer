@@ -160,7 +160,7 @@ class AppWidgetCard : BaseAppWidget() {
         appWidgetView.setImageViewBitmap(
             R.id.button_shuffle,
             service.getTintedDrawable(
-                R.drawable.ic_shuffle,
+                getShuffleDrawable(service),
                 MaterialValueHelper.getSecondaryTextColor(service, true)
             ).toBitmap()
         )
@@ -237,7 +237,7 @@ class AppWidgetCard : BaseAppWidget() {
                         )
                         appWidgetView.setImageViewBitmap(
                             R.id.button_shuffle,
-                            service.getTintedDrawable(R.drawable.ic_shuffle, color).toBitmap()
+                            service.getTintedDrawable(getShuffleDrawable(service), color).toBitmap()
                         )
 
                         val image = getAlbumArtDrawable(service, bitmap)

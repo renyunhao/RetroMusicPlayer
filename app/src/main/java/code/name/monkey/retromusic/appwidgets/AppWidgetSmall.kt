@@ -207,7 +207,7 @@ class AppWidgetSmall : BaseAppWidget() {
                         )
                         appWidgetView.setImageViewBitmap(
                             R.id.button_shuffle,
-                            service.getTintedDrawable(R.drawable.ic_shuffle, color).toBitmap()
+                            service.getTintedDrawable(getShuffleDrawable(service), color).toBitmap()
                         )
 
                         val image = getAlbumArtDrawable(service, bitmap)

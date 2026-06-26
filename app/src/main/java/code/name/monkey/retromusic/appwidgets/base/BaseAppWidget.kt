@@ -139,10 +139,18 @@ abstract class BaseAppWidget : AppWidgetProvider() {
      * REPEAT_MODE_THIS shows [R.drawable.ic_repeat_one], everything else shows [R.drawable.ic_repeat].
      */
     protected fun getRepeatDrawable(service: MusicService): Int {
-        return if (service.repeatMode == MusicService.REPEAT_MODE_THIS) {
-            R.drawable.ic_repeat_one
+        return when (service.repeatMode) {
+            MusicService.REPEAT_MODE_THIS -> R.drawable.ic_repeat_one
+            MusicService.REPEAT_MODE_ALL -> R.drawable.ic_repeat_white_circle
+            else -> R.drawable.ic_repeat
+        }
+    }
+
+    protected fun getShuffleDrawable(service: MusicService): Int {
+        return if (service.shuffleMode == MusicService.SHUFFLE_MODE_SHUFFLE) {
+            R.drawable.ic_shuffle_on_circled
         } else {
-            R.drawable.ic_repeat
+            R.drawable.ic_shuffle_off_circled
         }
     }
 

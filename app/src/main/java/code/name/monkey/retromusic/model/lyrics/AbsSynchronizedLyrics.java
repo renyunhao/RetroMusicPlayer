@@ -43,6 +43,40 @@ public abstract class AbsSynchronizedLyrics extends Lyrics {
     return lines.get(lastLineTime);
   }
 
+  public String getPreviousLine(int time) {
+    time += offset + AbsSynchronizedLyrics.TIME_OFFSET_MS;
+
+    int prevLineTime = -1;
+    int currentLineTime = -1;
+
+    for (int i = 0; i < lines.size(); i++) {
+      int lineTime = lines.keyAt(i);
+
+      if (time >= lineTime) {
+        prevLineTime = currentLineTime;
+        currentLineTime = lineTime;
+      } else {
+        break;
+      }
+    }
+
+    return prevLineTime >= 0 ? lines.get(prevLineTime) : "";
+  }
+
+  public String getNextLine(int time) {
+    time += offset + AbsSynchronizedLyrics.TIME_OFFSET_MS;
+
+    for (int i = 0; i < lines.size(); i++) {
+      int lineTime = lines.keyAt(i);
+
+      if (time < lineTime) {
+        return lines.get(lineTime);
+      }
+    }
+
+    return "";
+  }
+
   @Override
   public String getText() {
     parse(false);

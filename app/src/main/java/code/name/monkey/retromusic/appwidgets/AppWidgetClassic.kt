@@ -220,7 +220,7 @@ class AppWidgetClassic : BaseAppWidget() {
                         appWidgetView.setImageViewBitmap(
                             R.id.button_shuffle,
                             service.getTintedDrawable(
-                                R.drawable.ic_shuffle,
+                                getShuffleDrawable(service),
                                 color
                             ).toBitmap()
                         )

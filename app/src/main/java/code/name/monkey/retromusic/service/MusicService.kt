@@ -299,6 +299,19 @@ class MusicService : MediaBrowserServiceCompat(),
     }
     private var throttledSeekHandler: ThrottledSeekHandler? = null
     private var uiThreadHandler: Handler? = null
+    private var currentLyricsLine: String = ""
+    private val lyricsUpdateRunnable = object : Runnable {
+        override fun run() {
+            if (isPlaying) {
+                val line = appWidgetBig.getCurrentLyricsLine(this@MusicService, songProgressMillis)
+                if (line != currentLyricsLine) {
+                    currentLyricsLine = line
+                    appWidgetBig.notifyLyricsLineChanged(this@MusicService, line)
+                }
+                uiThreadHandler?.postDelayed(this, LYRICS_UPDATE_INTERVAL)
+            }
+        }
+    }
     private var wakeLock: WakeLock? = null
     private var notificationManager: NotificationManager? = null
     private var isForeground = false
@@ -455,7 +468,7 @@ class MusicService : MediaBrowserServiceCompat(),
         get() = getSongAt(getPosition())
 
     val nextSong: Song?
-        get() = if (isLastTrack && repeatMode == REPEAT_MODE_NONE) {
+        get() = if (isLastTrack && repeatMode == REPEAT_MODE_NONE && shuffleMode == SHUFFLE_MODE_NONE) {
             null
         } else {
             getSongAt(getNextPosition(false))
@@ -477,7 +490,12 @@ class MusicService : MediaBrowserServiceCompat(),
             }
 
             REPEAT_MODE_NONE -> if (isLastTrack) {
-                position -= 1
+                if (shuffleMode == SHUFFLE_MODE_SHUFFLE) {
+                    makeShuffleList(playingQueue, getPosition())
+                    position = 0
+                } else {
+                    position -= 1
+                }
             }
 
             else -> if (isLastTrack) {
@@ -533,9 +551,6 @@ class MusicService : MediaBrowserServiceCompat(),
         return duration
     }
 
-    private fun getShuffleMode(): Int {
-        return shuffleMode
-    }
 
     fun setShuffleMode(shuffleMode: Int) {
         PreferenceManager.getDefaultSharedPreferences(this).edit {
@@ -543,22 +558,23 @@ class MusicService : MediaBrowserServiceCompat(),
         }
         when (shuffleMode) {
             SHUFFLE_MODE_SHUFFLE -> {
-                this.shuffleMode = shuffleMode
                 makeShuffleList(playingQueue, getPosition())
                 position = 0
+                this.shuffleMode = shuffleMode
             }
 
             SHUFFLE_MODE_NONE -> {
-                this.shuffleMode = shuffleMode
-                val currentSongId = Objects.requireNonNull(currentSong).id
+                val currentSongId = currentSong.id
                 playingQueue = ArrayList(originalPlayingQueue)
                 var newPosition = 0
-                for (song in playingQueue) {
+                for ((index, song) in playingQueue.withIndex()) {
                     if (song.id == currentSongId) {
-                        newPosition = playingQueue.indexOf(song)
+                        newPosition = index
+                        break
                     }
                 }
                 position = newPosition
+                this.shuffleMode = shuffleMode
             }
         }
         handleAndSendChangeInternal(SHUFFLE_MODE_CHANGED)
@@ -601,7 +617,7 @@ class MusicService : MediaBrowserServiceCompat(),
         val currentPosition = getPosition()
         val songToMove = playingQueue.removeAt(from)
         playingQueue.add(to, songToMove)
-        if (getShuffleMode() == SHUFFLE_MODE_NONE) {
+        if (shuffleMode == SHUFFLE_MODE_NONE) {
             val tmpSong = originalPlayingQueue.removeAt(from)
             originalPlayingQueue.add(to, tmpSong)
         }
@@ -708,6 +724,7 @@ class MusicService : MediaBrowserServiceCompat(),
                     ACTION_PLAY -> play()
                     ACTION_PLAY_PLAYLIST -> playFromPlaylist(intent)
                     ACTION_REWIND -> back(true)
+                    ACTION_PREVIOUS -> playPreviousSong(true)
                     ACTION_SKIP -> playNextSong(true)
                     ACTION_STOP, ACTION_QUIT -> {
                         pendingQuit = false
@@ -727,15 +744,14 @@ class MusicService : MediaBrowserServiceCompat(),
 
     override fun onTrackEnded() {
         acquireWakeLock()
-        // if there is a timer finished, don't continue
         if (pendingQuit
-            || (repeatMode == REPEAT_MODE_NONE && isLastTrack)
+            || (repeatMode == REPEAT_MODE_NONE && isLastTrack && shuffleMode == SHUFFLE_MODE_NONE)
         ) {
             quit()
             seek(0, false)
             if (pendingQuit) {
                 pendingQuit = false
-            } else if (repeatMode == REPEAT_MODE_NONE && isLastTrack) {
+            } else if (repeatMode == REPEAT_MODE_NONE && isLastTrack && shuffleMode == SHUFFLE_MODE_NONE) {
                 position = 0
                 notifyChange(QUEUE_CHANGED)
             }
@@ -751,7 +767,7 @@ class MusicService : MediaBrowserServiceCompat(),
     }
 
     override fun onTrackWentToNext() {
-        if (pendingQuit || repeatMode == REPEAT_MODE_NONE && isLastTrack) {
+        if (pendingQuit || (repeatMode == REPEAT_MODE_NONE && isLastTrack && shuffleMode == SHUFFLE_MODE_NONE)) {
             playbackManager.setNextDataSource(null)
             pause(false)
             seek(0, false)
@@ -768,6 +784,12 @@ class MusicService : MediaBrowserServiceCompat(),
 
     override fun onPlayStateChanged() {
         notifyChange(PLAY_STATE_CHANGED)
+        if (isPlaying) {
+            uiThreadHandler?.removeCallbacks(lyricsUpdateRunnable)
+            uiThreadHandler?.postDelayed(lyricsUpdateRunnable, LYRICS_UPDATE_INTERVAL)
+        } else {
+            uiThreadHandler?.removeCallbacks(lyricsUpdateRunnable)
+        }
     }
 
     override fun onUnbind(intent: Intent): Boolean {
@@ -923,7 +945,7 @@ class MusicService : MediaBrowserServiceCompat(),
     }
 
     fun removeSong(position: Int) {
-        if (getShuffleMode() == SHUFFLE_MODE_NONE) {
+        if (shuffleMode == SHUFFLE_MODE_NONE) {
             playingQueue.removeAt(position)
             originalPlayingQueue.removeAt(position)
         } else {
@@ -1053,7 +1075,7 @@ class MusicService : MediaBrowserServiceCompat(),
     }
 
     fun toggleShuffle() {
-        if (getShuffleMode() == SHUFFLE_MODE_NONE) {
+        if (shuffleMode == SHUFFLE_MODE_NONE) {
             setShuffleMode(SHUFFLE_MODE_SHUFFLE)
         } else {
             setShuffleMode(SHUFFLE_MODE_NONE)
@@ -1169,6 +1191,8 @@ class MusicService : MediaBrowserServiceCompat(),
             }
 
             META_CHANGED -> {
+                currentLyricsLine = ""
+                appWidgetBig.onSongChanged(this@MusicService)
                 // We must call updateMediaSessionPlaybackState after the load of album art is completed
                 // if we are loading it or it won't be updated in the notification
                 updateMediaSessionMetaData {
@@ -1292,7 +1316,7 @@ class MusicService : MediaBrowserServiceCompat(),
                 AbsSmartPlaylist::class.java
             )
         }
-        val shuffleMode = intent.getIntExtra(INTENT_EXTRA_SHUFFLE_MODE, getShuffleMode())
+        val shuffleMode = intent.getIntExtra(INTENT_EXTRA_SHUFFLE_MODE, shuffleMode)
         if (playlist != null) {
             val playlistSongs = playlist.songs()
             if (playlistSongs.isNotEmpty()) {
@@ -1362,6 +1386,7 @@ class MusicService : MediaBrowserServiceCompat(),
     }
 
     private fun releaseResources() {
+        uiThreadHandler?.removeCallbacks(lyricsUpdateRunnable)
         playerHandler?.removeCallbacksAndMessages(null)
         musicPlayerHandlerThread?.quitSafely()
         playbackManager.release()
@@ -1377,6 +1402,7 @@ class MusicService : MediaBrowserServiceCompat(),
         )
         handleAndSendChangeInternal(SHUFFLE_MODE_CHANGED)
         handleAndSendChangeInternal(REPEAT_MODE_CHANGED)
+
         serviceScope.launch {
             restoreQueuesAndPositionIfNecessary()
             completion()
@@ -1421,7 +1447,7 @@ class MusicService : MediaBrowserServiceCompat(),
                 .build()
         )
         val shuffleIcon =
-            if (getShuffleMode() == SHUFFLE_MODE_NONE) R.drawable.ic_shuffle_off_circled else R.drawable.ic_shuffle_on_circled
+            if (shuffleMode == SHUFFLE_MODE_NONE) R.drawable.ic_shuffle_off_circled else R.drawable.ic_shuffle_on_circled
         stateBuilder.addCustomAction(
             PlaybackStateCompat.CustomAction.Builder(
                 TOGGLE_SHUFFLE, getString(R.string.action_toggle_shuffle), shuffleIcon
@@ -1470,6 +1496,7 @@ class MusicService : MediaBrowserServiceCompat(),
         const val ACTION_STOP = "$RETRO_MUSIC_PACKAGE_NAME.stop"
         const val ACTION_SKIP = "$RETRO_MUSIC_PACKAGE_NAME.skip"
         const val ACTION_REWIND = "$RETRO_MUSIC_PACKAGE_NAME.rewind"
+        const val ACTION_PREVIOUS = "$RETRO_MUSIC_PACKAGE_NAME.previous"
         const val ACTION_QUIT = "$RETRO_MUSIC_PACKAGE_NAME.quitservice"
         const val ACTION_PENDING_QUIT = "$RETRO_MUSIC_PACKAGE_NAME.pendingquitservice"
         const val INTENT_EXTRA_PLAYLIST = RETRO_MUSIC_PACKAGE_NAME + "intentextra.playlist"
@@ -1487,6 +1514,7 @@ class MusicService : MediaBrowserServiceCompat(),
         const val REPEAT_MODE_CHANGED = "$RETRO_MUSIC_PACKAGE_NAME.repeatmodechanged"
         const val SHUFFLE_MODE_CHANGED = "$RETRO_MUSIC_PACKAGE_NAME.shufflemodechanged"
         const val MEDIA_STORE_CHANGED = "$RETRO_MUSIC_PACKAGE_NAME.mediastorechanged"
+        const val LYRICS_LINE_CHANGED = "$RETRO_MUSIC_PACKAGE_NAME.lyricslinechanged"
         const val CYCLE_REPEAT = "$RETRO_MUSIC_PACKAGE_NAME.cyclerepeat"
         const val TOGGLE_SHUFFLE = "$RETRO_MUSIC_PACKAGE_NAME.toggleshuffle"
         const val TOGGLE_FAVORITE = "$RETRO_MUSIC_PACKAGE_NAME.togglefavorite"
@@ -1500,6 +1528,7 @@ class MusicService : MediaBrowserServiceCompat(),
         const val REPEAT_MODE_NONE = 0
         const val REPEAT_MODE_ALL = 1
         const val REPEAT_MODE_THIS = 2
+        private const val LYRICS_UPDATE_INTERVAL: Long = 1000
         private const val MEDIA_SESSION_ACTIONS = (PlaybackStateCompat.ACTION_PLAY
                 or PlaybackStateCompat.ACTION_PAUSE
                 or PlaybackStateCompat.ACTION_PLAY_PAUSE

@@ -203,7 +203,7 @@ class AppWidgetText : BaseAppWidget() {
         appWidgetView.setImageViewBitmap(
             R.id.button_shuffle,
             service.getTintedDrawable(
-                R.drawable.ic_shuffle,
+                getShuffleDrawable(service),
                 ContextCompat.getColor(
                     service, code.name.monkey.appthemehelper.R.color.md_white_1000
                 )

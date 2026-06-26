@@ -48,6 +48,7 @@ import code.name.monkey.retromusic.fragments.base.goToArtist
 import code.name.monkey.retromusic.fragments.other.VolumeFragment
 import code.name.monkey.retromusic.fragments.player.PlayerAlbumCoverFragment
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
+import code.name.monkey.retromusic.helper.ShuffleRepeatUIHelper
 import code.name.monkey.retromusic.helper.MusicProgressViewUpdateHelper
 import code.name.monkey.retromusic.helper.PlayPauseButtonOnClickHandler
 import code.name.monkey.retromusic.misc.SimpleOnSeekbarChangeListener
@@ -536,18 +537,7 @@ class ClassicPlayerFragment : AbsPlayerFragment(R.layout.fragment_classic_player
     }
 
     fun updateShuffleState() {
-        when (MusicPlayerRemote.shuffleMode) {
-            MusicService.SHUFFLE_MODE_SHUFFLE ->
-                binding.playerControlsContainer.shuffleButton.setColorFilter(
-                    lastPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-
-            else -> binding.playerControlsContainer.shuffleButton.setColorFilter(
-                lastDisabledPlaybackControlsColor,
-                PorterDuff.Mode.SRC_IN
-            )
-        }
+        ShuffleRepeatUIHelper.updateShuffleState(binding.playerControlsContainer.shuffleButton, lastPlaybackControlsColor, lastDisabledPlaybackControlsColor)
     }
 
     private fun setUpRepeatButton() {
@@ -555,31 +545,7 @@ class ClassicPlayerFragment : AbsPlayerFragment(R.layout.fragment_classic_player
     }
 
     fun updateRepeatState() {
-        when (MusicPlayerRemote.repeatMode) {
-            MusicService.REPEAT_MODE_NONE -> {
-                binding.playerControlsContainer.repeatButton.setImageResource(R.drawable.ic_repeat)
-                binding.playerControlsContainer.repeatButton.setColorFilter(
-                    lastDisabledPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
-
-            MusicService.REPEAT_MODE_ALL -> {
-                binding.playerControlsContainer.repeatButton.setImageResource(R.drawable.ic_repeat)
-                binding.playerControlsContainer.repeatButton.setColorFilter(
-                    lastPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
-
-            MusicService.REPEAT_MODE_THIS -> {
-                binding.playerControlsContainer.repeatButton.setImageResource(R.drawable.ic_repeat_one)
-                binding.playerControlsContainer.repeatButton.setColorFilter(
-                    lastPlaybackControlsColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
-        }
+        ShuffleRepeatUIHelper.updateRepeatState(binding.playerControlsContainer.repeatButton, lastPlaybackControlsColor, lastDisabledPlaybackControlsColor)
     }
 
     override fun onLayoutChange(
