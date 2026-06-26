@@ -14,11 +14,14 @@
  */
 package code.name.monkey.retromusic.fragments.player.normal
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import code.name.monkey.appthemehelper.util.ATHUtil
 import code.name.monkey.appthemehelper.util.ColorUtil
 import code.name.monkey.appthemehelper.util.MaterialValueHelper
@@ -29,10 +32,16 @@ import code.name.monkey.retromusic.extensions.*
 import code.name.monkey.retromusic.fragments.base.AbsPlayerControlsFragment
 import code.name.monkey.retromusic.fragments.base.goToAlbum
 import code.name.monkey.retromusic.fragments.base.goToArtist
+import code.name.monkey.retromusic.fragments.base.goToLyrics
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
+import code.name.monkey.retromusic.lyrics.CoverLrcView
+import code.name.monkey.retromusic.util.LyricUtil
 import code.name.monkey.retromusic.util.PreferenceUtil
 import code.name.monkey.retromusic.util.color.MediaNotificationProcessor
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PlayerPlaybackControlsFragment :
     AbsPlayerControlsFragment(R.layout.fragment_player_playback_controls) {
@@ -74,6 +83,65 @@ class PlayerPlaybackControlsFragment :
         binding.text.setOnClickListener {
             goToArtist(requireActivity())
         }
+        setupLyricsView()
+        if (PreferenceUtil.showLyrics) {
+            binding.lyricsView.isVisible = true
+        }
+    }
+
+    private fun setupLyricsView() {
+        binding.lyricsView.apply {
+            setDraggable(true) { time ->
+                MusicPlayerRemote.seekTo(time.toInt())
+                MusicPlayerRemote.resumePlaying()
+                true
+            }
+            setOnClickListener {
+                goToLyrics(requireActivity())
+            }
+        }
+    }
+
+    fun updateLyricsVisibility() {
+        if (PreferenceUtil.showLyrics) {
+            loadLyrics()
+            binding.lyricsView.isVisible = true
+        } else {
+            binding.lyricsView.isVisible = false
+            binding.lyricsView.reset()
+        }
+    }
+
+    private fun loadLyrics() {
+        val song = MusicPlayerRemote.currentSong
+        lifecycleScope.launch(Dispatchers.IO) {
+            val lrcFile = LyricUtil.getSyncedLyricsFile(song)
+            val embeddedLyrics = LyricUtil.getEmbeddedSyncedLyrics(song.data)
+            withContext(Dispatchers.Main) {
+                if (lrcFile != null) {
+                    binding.lyricsView.loadLrc(lrcFile)
+                } else if (embeddedLyrics != null) {
+                    binding.lyricsView.loadLrc(embeddedLyrics)
+                } else {
+                    binding.lyricsView.reset()
+                    binding.lyricsView.setLabel(context?.getString(R.string.no_lyrics_found))
+                }
+            }
+        }
+    }
+
+    fun updateTime(time: Long) {
+        binding.lyricsView.updateTime(time)
+    }
+
+    fun setLyricsViewColors(primaryColor: Int, secondaryColor: Int) {
+        binding.lyricsView.apply {
+            setCurrentColor(primaryColor)
+            setTimeTextColor(primaryColor)
+            setTimelineColor(primaryColor)
+            setNormalColor(secondaryColor)
+            setTimelineTextColor(primaryColor)
+        }
     }
 
     override fun setColor(color: MediaNotificationProcessor) {
@@ -107,6 +175,7 @@ class PlayerPlaybackControlsFragment :
         TintHelper.setTintAuto(binding.playPauseButton, colorFinal, true)
         binding.progressSlider.applyColor(colorFinal)
         volumeFragment?.setTintable(colorFinal)
+        setLyricsViewColors(Color.CYAN, Color.GRAY)
         updateRepeatState()
         updateShuffleState()
         updatePrevNextColor()
@@ -125,21 +194,31 @@ class PlayerPlaybackControlsFragment :
         }
     }
 
-
     override fun onServiceConnected() {
         updatePlayPauseDrawableState()
         updateRepeatState()
         updateShuffleState()
         updateSong()
+        updateLyricsVisibility()
     }
 
     override fun onPlayingMetaChanged() {
         super.onPlayingMetaChanged()
         updateSong()
+        if (PreferenceUtil.showLyrics) {
+            loadLyrics()
+        }
     }
 
     override fun onPlayStateChanged() {
         updatePlayPauseDrawableState()
+    }
+
+    override fun onUpdateProgressViews(progress: Int, total: Int) {
+        super.onUpdateProgressViews(progress, total)
+        if (PreferenceUtil.showLyrics) {
+            updateTime(progress.toLong())
+        }
     }
 
     override fun onRepeatModeChanged() {

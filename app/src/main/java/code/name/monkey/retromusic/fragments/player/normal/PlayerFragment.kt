@@ -25,6 +25,7 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import code.name.monkey.appthemehelper.util.ToolbarContentTintHelper
 import code.name.monkey.retromusic.R
+import code.name.monkey.retromusic.SHOW_LYRICS
 import code.name.monkey.retromusic.SNOWFALL
 import code.name.monkey.retromusic.databinding.FragmentPlayerBinding
 import code.name.monkey.retromusic.extensions.*
@@ -45,6 +46,7 @@ class PlayerFragment : AbsPlayerFragment(R.layout.fragment_player),
         get() = lastColor
 
     private lateinit var controlsFragment: PlayerPlaybackControlsFragment
+
     private var valueAnimator: ValueAnimator? = null
 
     private var _binding: FragmentPlayerBinding? = null
@@ -141,7 +143,6 @@ class PlayerFragment : AbsPlayerFragment(R.layout.fragment_player),
 
     private fun setUpPlayerToolbar() {
         binding.playerToolbar.inflateMenu(R.menu.menu_player)
-        //binding.playerToolbar.menu.setUpWithIcons()
         binding.playerToolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
         binding.playerToolbar.setOnMenuItemClickListener(this)
 
@@ -155,6 +156,8 @@ class PlayerFragment : AbsPlayerFragment(R.layout.fragment_player),
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
         if (key == SNOWFALL) {
             startOrStopSnow(PreferenceUtil.isSnowFalling)
+        } else if (key == SHOW_LYRICS) {
+            controlsFragment.updateLyricsVisibility()
         }
     }
 
@@ -171,6 +174,7 @@ class PlayerFragment : AbsPlayerFragment(R.layout.fragment_player),
 
     override fun onServiceConnected() {
         updateIsFavorite()
+        controlsFragment.updateLyricsVisibility()
     }
 
     override fun onPlayingMetaChanged() {
