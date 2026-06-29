@@ -574,6 +574,8 @@
     <string name="scan_complete">Scan complete: %1$d media items found.</string>
     <string name="pref_save_last_directory_summary">When switching to folder view, restore last used directory</string>
     <string name="pref_save_last_directory_title">Save Last Directory</string>
+    <string name="pref_scan_media_store_title">Scan Media Store</string>
+    <string name="pref_scan_media_store_summary">Force a full rescan of the system media library to discover new files and remove deleted entries</string>
     <string name="artist_separator_helper_text">To add multiple artists, separate them with: %1$s</string>
     <string name="go_to_artist">Go to artist</string>
 

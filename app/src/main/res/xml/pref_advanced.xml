@@ -78,6 +78,12 @@
             android:title="@string/pref_save_last_directory_title"
             app:icon="@drawable/ic_screen_lock_portrait" />
 
+        <code.name.monkey.appthemehelper.common.prefs.supportv7.ATEPreference
+            android:key="scan_media_store"
+            android:layout="@layout/list_item_view"
+            android:summary="@string/pref_scan_media_store_summary"
+            android:title="@string/pref_scan_media_store_title"
+            app:icon="@drawable/ic_refresh" />
 
     </code.name.monkey.appthemehelper.common.prefs.supportv7.ATEPreferenceCategory>
     <code.name.monkey.appthemehelper.common.prefs.supportv7.ATEListPreference

@@ -14,8 +14,12 @@
  */
 package code.name.monkey.retromusic.fragments.settings
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.preference.Preference
@@ -23,6 +27,7 @@ import code.name.monkey.appthemehelper.common.prefs.supportv7.ATEListPreference
 import code.name.monkey.retromusic.LANGUAGE_NAME
 import code.name.monkey.retromusic.LAST_ADDED_CUTOFF
 import code.name.monkey.retromusic.R
+import code.name.monkey.retromusic.SCAN_MEDIA_STORE
 import code.name.monkey.retromusic.extensions.installLanguageAndRecreate
 import code.name.monkey.retromusic.fragments.LibraryViewModel
 import code.name.monkey.retromusic.fragments.ReloadType.HomeSections
@@ -64,7 +69,6 @@ class OtherSettingsFragment : AbsSettingsFragment() {
             if (newValue as? String == "auto") {
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
             } else {
-                // Install the languages from Play Store first and then set the application locale
                 requireActivity().installLanguageAndRecreate(newValue.toString()) {
                     AppCompatDelegate.setApplicationLocales(
                         LocaleListCompat.forLanguageTags(
@@ -73,6 +77,15 @@ class OtherSettingsFragment : AbsSettingsFragment() {
                     )
                 }
             }
+            true
+        }
+        val scanPreference: Preference? = findPreference(SCAN_MEDIA_STORE)
+        scanPreference?.setOnPreferenceClickListener {
+            val intent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+            intent.data = Uri.parse("file://${Environment.getExternalStorageDirectory()}")
+            requireContext().sendBroadcast(intent)
+            Toast.makeText(requireContext(), R.string.pref_scan_media_store_summary, Toast.LENGTH_SHORT).show()
+            libraryViewModel.forceReload(HomeSections)
             true
         }
     }
