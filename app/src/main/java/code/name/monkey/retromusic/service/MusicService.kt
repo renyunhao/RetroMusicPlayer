@@ -277,8 +277,8 @@ class MusicService : MediaBrowserServiceCompat(),
                     currentLyricsLine = line
                     appWidgetBig.notifyLyricsLineChanged(this@MusicService, line)
                 }
-                uiThreadHandler?.postDelayed(this, LYRICS_UPDATE_INTERVAL)
             }
+            uiThreadHandler?.postDelayed(this, LYRICS_UPDATE_INTERVAL)
         }
     }
     private var wakeLock: WakeLock? = null
@@ -756,8 +756,7 @@ class MusicService : MediaBrowserServiceCompat(),
         if (isPlaying) {
             uiThreadHandler?.removeCallbacks(lyricsUpdateRunnable)
             uiThreadHandler?.postDelayed(lyricsUpdateRunnable, LYRICS_UPDATE_INTERVAL)
-        } else {
-            uiThreadHandler?.removeCallbacks(lyricsUpdateRunnable)
+
         }
     }
 
