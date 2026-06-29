@@ -67,12 +67,7 @@ import code.name.monkey.retromusic.R
 import code.name.monkey.retromusic.TOGGLE_HEADSET
 import code.name.monkey.retromusic.activities.LockScreenActivity
 import code.name.monkey.retromusic.appwidgets.AppWidgetBig
-import code.name.monkey.retromusic.appwidgets.AppWidgetCard
-import code.name.monkey.retromusic.appwidgets.AppWidgetCircle
 import code.name.monkey.retromusic.appwidgets.AppWidgetClassic
-import code.name.monkey.retromusic.appwidgets.AppWidgetMD3
-import code.name.monkey.retromusic.appwidgets.AppWidgetSmall
-import code.name.monkey.retromusic.appwidgets.AppWidgetText
 import code.name.monkey.retromusic.auto.AutoMediaIDHelper
 import code.name.monkey.retromusic.auto.AutoMusicProvider
 import code.name.monkey.retromusic.extensions.showToast
@@ -153,12 +148,7 @@ class MusicService : MediaBrowserServiceCompat(),
     @JvmField
     var position = -1
     private val appWidgetBig = AppWidgetBig.instance
-    private val appWidgetCard = AppWidgetCard.instance
     private val appWidgetClassic = AppWidgetClassic.instance
-    private val appWidgetSmall = AppWidgetSmall.instance
-    private val appWidgetText = AppWidgetText.instance
-    private val appWidgetMd3 = AppWidgetMD3.instance
-    private val appWidgetCircle = AppWidgetCircle.instance
     private val widgetIntentReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val command = intent.getStringExtra(EXTRA_APP_WIDGET_NAME)
@@ -169,28 +159,8 @@ class MusicService : MediaBrowserServiceCompat(),
                         appWidgetClassic.performUpdate(this@MusicService, ids)
                     }
 
-                    AppWidgetSmall.NAME -> {
-                        appWidgetSmall.performUpdate(this@MusicService, ids)
-                    }
-
                     AppWidgetBig.NAME -> {
                         appWidgetBig.performUpdate(this@MusicService, ids)
-                    }
-
-                    AppWidgetCard.NAME -> {
-                        appWidgetCard.performUpdate(this@MusicService, ids)
-                    }
-
-                    AppWidgetText.NAME -> {
-                        appWidgetText.performUpdate(this@MusicService, ids)
-                    }
-
-                    AppWidgetMD3.NAME -> {
-                        appWidgetMd3.performUpdate(this@MusicService, ids)
-                    }
-
-                    AppWidgetCircle.NAME -> {
-                        appWidgetCircle.performUpdate(this@MusicService, ids)
                     }
                 }
             }
@@ -229,7 +199,6 @@ class MusicService : MediaBrowserServiceCompat(),
                     startForegroundOrNotify()
                 }
 
-                appWidgetCircle.notifyChange(this@MusicService, FAVORITE_STATE_CHANGED)
             }
         }
     }
@@ -1426,11 +1395,7 @@ class MusicService : MediaBrowserServiceCompat(),
         LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(what))
         appWidgetBig.notifyChange(this, what)
         appWidgetClassic.notifyChange(this, what)
-        appWidgetSmall.notifyChange(this, what)
-        appWidgetCard.notifyChange(this, what)
-        appWidgetText.notifyChange(this, what)
-        appWidgetMd3.notifyChange(this, what)
-        appWidgetCircle.notifyChange(this, what)
+
     }
 
     private fun setCustomAction(stateBuilder: PlaybackStateCompat.Builder) {
