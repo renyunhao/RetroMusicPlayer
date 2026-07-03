@@ -463,60 +463,77 @@ object MusicUtil : KoinComponent {
     }
 
     suspend fun deleteTracks(context: Context, songs: List<Song>) {
-        val projection = arrayOf(BaseColumns._ID, Constants.DATA)
-        val selection = StringBuilder()
-        selection.append(BaseColumns._ID + " IN (")
-        for (i in songs.indices) {
-            selection.append(songs[i].id)
-            if (i < songs.size - 1) {
-                selection.append(",")
-            }
-        }
-        selection.append(")")
+        removeFromQueue(songs)
         var deletedCount = 0
         try {
-            val cursor: Cursor? = context.contentResolver.query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection.toString(),
-                null, null
-            )
-            if (cursor != null) {
-                removeFromQueue(songs)
-
-                // Step 2: Remove files from card
-                cursor.moveToFirst()
-                while (!cursor.isAfterLast) {
-                    val id: Int = cursor.getInt(0)
-                    val name: String = cursor.getString(1)
-                    try { // File.delete can throw a security exception
-                        val f = File(name)
-                        if (f.delete()) {
-                            // Step 3: Remove selected track from the database
-                            context.contentResolver.delete(
-                                ContentUris.withAppendedId(
-                                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                    id.toLong()
-                                ), null, null
-                            )
+            if (VersionUtils.hasR()) {
+                withContext(Dispatchers.Main) {
+                    context.showToast(R.string.deleted_x_songs_hint)
+                }
+            } else if (VersionUtils.hasQ()) {
+                for (song in songs) {
+                    val uri = ContentUris.withAppendedId(
+                        MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
+                        song.id
+                    )
+                    try {
+                        val deleted = context.contentResolver.delete(uri, null, null)
+                        if (deleted > 0) {
                             deletedCount++
-                        } else {
-                            // I'm not sure if we'd ever get here (deletion would
-                            // have to fail, but no exception thrown)
-                            Log.e("MusicUtils", "Failed to delete file $name")
                         }
-                        cursor.moveToNext()
                     } catch (ex: SecurityException) {
-                        cursor.moveToNext()
-                    } catch (e: NullPointerException) {
-                        Log.e("MusicUtils", "Failed to find file $name")
+                        Log.e("MusicUtils", "No access to delete ${song.title}")
                     }
                 }
-                cursor.close()
+                withContext(Dispatchers.Main) {
+                    context.showToast(context.getString(R.string.deleted_x_songs, deletedCount))
+                }
+            } else {
+                val projection = arrayOf(BaseColumns._ID, Constants.DATA)
+                val selection = StringBuilder()
+                selection.append(BaseColumns._ID + " IN (")
+                for (i in songs.indices) {
+                    selection.append(songs[i].id)
+                    if (i < songs.size - 1) {
+                        selection.append(",")
+                    }
+                }
+                selection.append(")")
+                val cursor: Cursor? = context.contentResolver.query(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection.toString(),
+                    null, null
+                )
+                if (cursor != null) {
+                    cursor.moveToFirst()
+                    while (!cursor.isAfterLast) {
+                        val id: Int = cursor.getInt(0)
+                        val name: String = cursor.getString(1)
+                        try {
+                            val f = File(name)
+                            if (f.delete()) {
+                                context.contentResolver.delete(
+                                    ContentUris.withAppendedId(
+                                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                        id.toLong()
+                                    ), null, null
+                                )
+                                deletedCount++
+                            } else {
+                                Log.e("MusicUtils", "Failed to delete file $name")
+                            }
+                        } catch (ex: SecurityException) {
+                            Log.e("MusicUtils", "SecurityException deleting file $name")
+                        }
+                        cursor.moveToNext()
+                    }
+                    cursor.close()
+                }
+                withContext(Dispatchers.Main) {
+                    context.showToast(context.getString(R.string.deleted_x_songs, deletedCount))
+                }
             }
-            withContext(Dispatchers.Main) {
-                context.showToast(context.getString(R.string.deleted_x_songs, deletedCount))
-            }
-
-        } catch (ignored: SecurityException) {
+        } catch (ex: SecurityException) {
+            Log.e("MusicUtils", "SecurityException deleting file ${ex.message}")
         }
     }
 

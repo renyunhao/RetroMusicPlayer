@@ -574,5 +574,6 @@
     <string name="pref_scan_media_store_summary">Force a full rescan of the system media library to discover new files and remove deleted entries</string>
     <string name="artist_separator_helper_text">To add multiple artists, separate them with: %1$s</string>
     <string name="go_to_artist">Go to artist</string>
+    <string name="deleted_x_songs_hint">Removed from queue. To delete files, use the delete button in the player.</string>
 
 </resources>
