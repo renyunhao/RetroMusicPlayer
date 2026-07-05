@@ -14,7 +14,6 @@
     <string name="action_clear_playing_queue">Clear playing queue</string>
     <string name="action_cycle_repeat">Cycle repeat mode</string>
     <string name="action_delete">Delete</string>
-    <string name="action_delete_from_queue">Delete from queue</string>
     <string name="action_delete_from_device">Delete from device</string>
     <string name="action_details">Details</string>
     <string name="action_edit">Edit</string>
@@ -74,7 +73,7 @@
     <string name="app_share">Hey check out this cool music player at: https://play.google.com/store/apps/details?id=%s</string>
     <string name="app_shortcut_shuffle_all_short">Shuffle</string>
     <string name="app_shortcut_top_tracks_short">Top Tracks</string>
-    <string name="app_widget_big_name">Full Image</string>
+    <string name="app_widget_big_name">Big Panel</string>
     <string name="app_widget_classic_name">Classic</string>
     <string name="artist">Artist</string>
     <string name="artists">Artists</string>

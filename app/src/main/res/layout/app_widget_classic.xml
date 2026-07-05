@@ -73,7 +73,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/widget_selector"
-                android:contentDescription="@string/action_delete_from_queue"
+                android:contentDescription="@string/action_delete"
                 tools:src="@drawable/ic_delete"
                 tools:tint="@color/ate_secondary_text_dark" />
 

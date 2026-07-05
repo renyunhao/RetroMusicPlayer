@@ -71,12 +71,8 @@
     <string name="app_share">嘿，快来瞧瞧这个酷炫的音乐播放器：https://play.google.com/store/apps/details?id=%s</string>
     <string name="app_shortcut_shuffle_all_short">随机播放</string>
     <string name="app_shortcut_top_tracks_short">热门曲目</string>
-    <string name="app_widget_big_name">完整图像</string>
-    <string name="app_widget_card_name">卡片</string>
+    <string name="app_widget_big_name">大面板</string>
     <string name="app_widget_classic_name">经典</string>
-    <string name="app_widget_md3_name">MD3</string>
-    <string name="app_widget_small_name">小巧</string>
-    <string name="app_widget_text_name">极简文字</string>
     <string name="artist">艺术家</string>
     <string name="artists">艺术家</string>
     <string name="audio_fade_duration">音乐淡入淡出时长</string>
@@ -571,5 +567,7 @@
     <string name="pref_save_last_directory_title">保存上次目录</string>
     <string name="pref_scan_media_store_title">扫描媒体库</string>
     <string name="pref_scan_media_store_summary">强制系统重新扫描全部媒体文件，以发现新文件并移除已删除的条目</string>
-    <string name="artist_separator_helper_text">To add multiple artists, separate them with: %1$s</string>
+    <string name="artist_separator_helper_text">多名歌手使用分隔符隔开: %1$s</string>
+    <string name="go_to_artist">前往歌手</string>
+    <string name="deleted_x_songs_hint">已从队列中移除，要删除文件，请使用播放器界面的删除按钮</string>
 </resources>
