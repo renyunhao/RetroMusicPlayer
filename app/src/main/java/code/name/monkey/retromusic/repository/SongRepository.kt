@@ -65,7 +65,10 @@ class RealSongRepository(private val context: Context) : SongRepository {
         val songs = arrayListOf<Song>()
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                songs.add(getSongFromCursorImpl(cursor))
+                val song = getSongFromCursorImpl(cursor)
+                if (song.data.isNotEmpty() && java.io.File(song.data).exists()) {
+                    songs.add(song)
+                }
             } while (cursor.moveToNext())
         }
         cursor?.close()

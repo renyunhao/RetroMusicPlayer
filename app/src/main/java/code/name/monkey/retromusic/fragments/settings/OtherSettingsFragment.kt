@@ -14,8 +14,7 @@
  */
 package code.name.monkey.retromusic.fragments.settings
 
-import android.content.Intent
-import android.net.Uri
+import android.media.MediaScannerConnection
 import android.os.Bundle
 import android.os.Environment
 import android.view.View
@@ -33,6 +32,7 @@ import code.name.monkey.retromusic.fragments.LibraryViewModel
 import code.name.monkey.retromusic.fragments.ReloadType.HomeSections
 import code.name.monkey.retromusic.util.PreferenceUtil
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import java.io.File
 
 /**
  * @author Hemanth S (h4h13).
@@ -81,12 +81,49 @@ class OtherSettingsFragment : AbsSettingsFragment() {
         }
         val scanPreference: Preference? = findPreference(SCAN_MEDIA_STORE)
         scanPreference?.setOnPreferenceClickListener {
-            val intent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-            intent.data = Uri.parse("file://${Environment.getExternalStorageDirectory()}")
-            requireContext().sendBroadcast(intent)
-            Toast.makeText(requireContext(), R.string.pref_scan_media_store_summary, Toast.LENGTH_SHORT).show()
-            libraryViewModel.forceReload(HomeSections)
+            scanMediaFiles()
             true
+        }
+    }
+
+    private fun scanMediaFiles() {
+        val musicDir = File(Environment.getExternalStorageDirectory(), Environment.DIRECTORY_MUSIC)
+        val paths = mutableListOf<String>()
+        if (musicDir.exists()) {
+            collectAudioFiles(musicDir, paths)
+        }
+        val downloadDir = File(Environment.getExternalStorageDirectory(), Environment.DIRECTORY_DOWNLOADS)
+        if (downloadDir.exists()) {
+            collectAudioFiles(downloadDir, paths)
+        }
+        val rootMusicDir = File(Environment.getExternalStorageDirectory(), "Music")
+        if (rootMusicDir.exists() && rootMusicDir != musicDir) {
+            collectAudioFiles(rootMusicDir, paths)
+        }
+        MediaScannerConnection.scanFile(
+            requireContext(),
+            paths.toTypedArray(),
+            null
+        ) { _, _ ->
+            requireActivity().runOnUiThread {
+                libraryViewModel.forceReload(HomeSections)
+                Toast.makeText(
+                    requireContext(),
+                    requireContext().getString(R.string.scan_complete, paths.size),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun collectAudioFiles(dir: File, paths: MutableList<String>) {
+        val extensions = setOf("mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "opus")
+        dir.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                collectAudioFiles(file, paths)
+            } else if (file.extension.lowercase() in extensions) {
+                paths.add(file.absolutePath)
+            }
         }
     }
 }
