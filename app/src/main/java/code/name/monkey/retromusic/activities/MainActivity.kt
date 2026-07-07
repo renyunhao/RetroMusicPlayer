@@ -36,6 +36,7 @@ import code.name.monkey.retromusic.util.PreferenceUtil
 import code.name.monkey.retromusic.util.logE
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.get
 
 class MainActivity : AbsCastActivity() {
@@ -144,22 +145,28 @@ class MainActivity : AbsCastActivity() {
                 intent.action == MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH
             ) {
                 val songs: List<Song> = getSongs(intent.extras!!)
-                if (MusicPlayerRemote.shuffleMode == MusicService.SHUFFLE_MODE_SHUFFLE) {
-                    MusicPlayerRemote.openAndShuffleQueue(songs, true)
-                } else {
-                    MusicPlayerRemote.openQueue(songs, 0, true)
+                withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (MusicPlayerRemote.shuffleMode == MusicService.SHUFFLE_MODE_SHUFFLE) {
+                        MusicPlayerRemote.openAndShuffleQueue(songs, true)
+                    } else {
+                        MusicPlayerRemote.openQueue(songs, 0, true)
+                    }
                 }
                 handled = true
             }
             if (uri != null && uri.toString().isNotEmpty()) {
-                MusicPlayerRemote.playFromUri(this@MainActivity, uri)
+                withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    MusicPlayerRemote.playFromUri(this@MainActivity, uri)
+                }
                 handled = true
             } else if (MediaStore.Audio.Playlists.CONTENT_TYPE == mimeType) {
                 val id = parseLongFromIntent(intent, "playlistId", "playlist")
                 if (id >= 0L) {
                     val position: Int = intent.getIntExtra("position", 0)
                     val songs: List<Song> = PlaylistSongsLoader.getPlaylistSongList(get(), id)
-                    MusicPlayerRemote.openQueue(songs, position, true)
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        MusicPlayerRemote.openQueue(songs, position, true)
+                    }
                     handled = true
                 }
             } else if (MediaStore.Audio.Albums.CONTENT_TYPE == mimeType) {
@@ -167,11 +174,13 @@ class MainActivity : AbsCastActivity() {
                 if (id >= 0L) {
                     val position: Int = intent.getIntExtra("position", 0)
                     val songs = libraryViewModel.albumById(id).songs
-                    MusicPlayerRemote.openQueue(
-                        songs,
-                        position,
-                        true
-                    )
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        MusicPlayerRemote.openQueue(
+                            songs,
+                            position,
+                            true
+                        )
+                    }
                     handled = true
                 }
             } else if (MediaStore.Audio.Artists.CONTENT_TYPE == mimeType) {
@@ -179,11 +188,13 @@ class MainActivity : AbsCastActivity() {
                 if (id >= 0L) {
                     val position: Int = intent.getIntExtra("position", 0)
                     val songs: List<Song> = libraryViewModel.artistById(id).songs
-                    MusicPlayerRemote.openQueue(
-                        songs,
-                        position,
-                        true
-                    )
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        MusicPlayerRemote.openQueue(
+                            songs,
+                            position,
+                            true
+                        )
+                    }
                     handled = true
                 }
             }

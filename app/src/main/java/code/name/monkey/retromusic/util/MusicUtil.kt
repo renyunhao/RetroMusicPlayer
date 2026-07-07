@@ -381,7 +381,7 @@ object MusicUtil : KoinComponent {
 
     suspend fun isFavorite(song: Song) = repository.isSongFavorite(song.id)
 
-    fun deleteTracks(
+    suspend fun deleteTracks(
         activity: FragmentActivity,
         songs: List<Song>,
         safUris: List<Uri>?,
@@ -429,7 +429,9 @@ object MusicUtil : KoinComponent {
                     while (!cursor.isAfterLast) {
                         val id = cursor.getLong(BaseColumns._ID)
                         val song: Song = songRepository.song(id)
-                        removeFromQueue(song)
+                        withContext(Dispatchers.Main) {
+                            removeFromQueue(song)
+                        }
                         cursor.moveToNext()
                     }
 
@@ -463,7 +465,9 @@ object MusicUtil : KoinComponent {
     }
 
     suspend fun deleteTracks(context: Context, songs: List<Song>) {
-        removeFromQueue(songs)
+        withContext(Dispatchers.Main) {
+            removeFromQueue(songs)
+        }
         var deletedCount = 0
         try {
             if (VersionUtils.hasR()) {

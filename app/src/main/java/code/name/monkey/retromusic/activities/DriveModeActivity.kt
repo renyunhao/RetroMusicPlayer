@@ -103,9 +103,10 @@ class DriveModeActivity : AbsMusicServiceActivity(), Callback {
     }
 
     private fun updateFavorite() {
+        val song = MusicPlayerRemote.currentSong
         lifecycleScope.launch(Dispatchers.IO) {
             val isFavorite: Boolean =
-                repository.isSongFavorite(MusicPlayerRemote.currentSong.id)
+                repository.isSongFavorite(song.id)
             withContext(Dispatchers.Main) {
                 binding.songFavourite.setImageResource(if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border)
             }

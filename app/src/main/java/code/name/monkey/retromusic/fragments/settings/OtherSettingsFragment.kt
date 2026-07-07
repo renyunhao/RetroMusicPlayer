@@ -92,14 +92,6 @@ class OtherSettingsFragment : AbsSettingsFragment() {
         if (musicDir.exists()) {
             collectAudioFiles(musicDir, paths)
         }
-        val downloadDir = File(Environment.getExternalStorageDirectory(), Environment.DIRECTORY_DOWNLOADS)
-        if (downloadDir.exists()) {
-            collectAudioFiles(downloadDir, paths)
-        }
-        val rootMusicDir = File(Environment.getExternalStorageDirectory(), "Music")
-        if (rootMusicDir.exists() && rootMusicDir != musicDir) {
-            collectAudioFiles(rootMusicDir, paths)
-        }
         MediaScannerConnection.scanFile(
             requireContext(),
             paths.toTypedArray(),

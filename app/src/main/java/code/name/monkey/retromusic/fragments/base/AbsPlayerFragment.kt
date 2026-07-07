@@ -291,9 +291,10 @@ abstract class AbsPlayerFragment(@LayoutRes layout: Int) : AbsMusicServiceFragme
     }
 
     fun updateIsFavorite(animate: Boolean = false) {
+        val song = MusicPlayerRemote.currentSong
         lifecycleScope.launch(IO) {
             val isFavorite: Boolean =
-                libraryViewModel.isSongFavorite(MusicPlayerRemote.currentSong.id)
+                libraryViewModel.isSongFavorite(song.id)
             withContext(Main) {
                 val icon = if (animate) {
                     if (isFavorite) R.drawable.avd_favorite else R.drawable.avd_unfavorite

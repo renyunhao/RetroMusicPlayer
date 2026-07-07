@@ -97,9 +97,9 @@ class CoverLyricsFragment : AbsMusicServiceFragment(R.layout.fragment_cover_lyri
     }
 
     private fun updateLyrics() {
+        val song = MusicPlayerRemote.currentSong
         lyrics = null
         lifecycleScope.launch(Dispatchers.IO) {
-            val song = MusicPlayerRemote.currentSong
             lyrics = try {
                 val lrcFile: File? = LyricUtil.getSyncedLyricsFile(song)
                 val data: String = LyricUtil.getStringFromLrc(lrcFile)

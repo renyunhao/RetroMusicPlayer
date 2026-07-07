@@ -886,8 +886,9 @@ class MusicService : MediaBrowserServiceCompat(),
     }
 
     fun isCurrentFavorite(completion: (isFavorite: Boolean) -> Unit) {
+        val song = currentSong
         serviceScope.launch(IO) {
-            val isFavorite = MusicUtil.isFavorite(currentSong)
+            val isFavorite = MusicUtil.isFavorite(song)
             withContext(Main) {
                 completion(isFavorite)
             }
@@ -1173,9 +1174,9 @@ class MusicService : MediaBrowserServiceCompat(),
                 }
                 savePosition()
                 savePositionInTrack()
+                val song = currentSong
                 serviceScope.launch(IO) {
-                    val currentSong = currentSong
-                    HistoryStore.getInstance(this@MusicService).addSongId(currentSong.id)
+                    HistoryStore.getInstance(this@MusicService).addSongId(song.id)
                     if (songPlayCountHelper.shouldBumpPlayCount()) {
                         SongPlayCountStore.getInstance(this@MusicService)
                             .bumpPlayCount(songPlayCountHelper.song.id)
