@@ -58,6 +58,9 @@ class LibraryViewModel(
     val paletteColor: LiveData<Int> = _paletteColor
 
     init {
+        viewModelScope.launch(IO) {
+            repository.refreshSongRepository()
+        }
         loadLibraryContent()
     }
 
@@ -150,6 +153,7 @@ class LibraryViewModel(
 
     override fun onMediaStoreChanged() {
         logD("onMediaStoreChanged")
+        repository.refreshSongRepository()
         loadLibraryContent()
     }
 

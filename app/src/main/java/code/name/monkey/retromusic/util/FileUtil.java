@@ -17,7 +17,7 @@ package code.name.monkey.retromusic.util;
 import static code.name.monkey.retromusic.util.FileUtilsKt.getExternalStorageDirectory;
 
 import android.content.Context;
-import android.database.Cursor;
+
 import android.os.Environment;
 import android.webkit.MimeTypeMap;
 
@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +47,6 @@ import code.name.monkey.retromusic.Constants;
 import code.name.monkey.retromusic.adapter.Storage;
 import code.name.monkey.retromusic.model.Song;
 import code.name.monkey.retromusic.repository.RealSongRepository;
-import code.name.monkey.retromusic.repository.SortedCursor;
 
 public final class FileUtil {
 
@@ -66,7 +66,21 @@ public final class FileUtil {
   @NonNull
   public static List<Song> matchFilesWithMediaStore(
       @NonNull Context context, @Nullable List<File> files) {
-    return new RealSongRepository(context).songs(makeSongCursor(context, files));
+    if (files == null || files.isEmpty()) {
+      return new ArrayList<>();
+    }
+    List<Song> allSongs = new RealSongRepository(context).songs();
+    HashSet<String> filePaths = new HashSet<>();
+    for (File file : files) {
+      filePaths.add(safeGetCanonicalPath(file));
+    }
+    List<Song> matched = new ArrayList<>();
+    for (Song song : allSongs) {
+      if (filePaths.contains(song.getData())) {
+        matched.add(song);
+      }
+    }
+    return matched;
   }
 
   public static String safeGetCanonicalPath(File file) {
@@ -78,38 +92,7 @@ public final class FileUtil {
     }
   }
 
-  @Nullable
-  public static SortedCursor makeSongCursor(
-      @NonNull final Context context, @Nullable final List<File> files) {
-    String selection = null;
-    String[] paths = null;
 
-    if (files != null) {
-      paths = toPathArray(files);
-
-      if (files.size() > 0
-          && files.size() < 999) { // 999 is the max amount Androids SQL implementation can handle.
-        selection =
-            Constants.DATA + " IN (" + makePlaceholders(files.size()) + ")";
-      }
-    }
-
-    Cursor songCursor =
-        new RealSongRepository(context).makeSongCursor(selection, selection == null ? null : paths, PreferenceUtil.INSTANCE.getSongSortOrder(), true);
-
-    return songCursor == null
-        ? null
-        : new SortedCursor(songCursor, paths, Constants.DATA);
-  }
-
-  private static String makePlaceholders(int len) {
-    StringBuilder sb = new StringBuilder(len * 2 - 1);
-    sb.append("?");
-    for (int i = 1; i < len; i++) {
-      sb.append(",?");
-    }
-    return sb.toString();
-  }
 
   @Nullable
   private static String[] toPathArray(@Nullable List<File> files) {

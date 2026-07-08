@@ -24,12 +24,11 @@ import android.provider.MediaStore.Audio.AudioColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import code.name.monkey.retromusic.App;
 import code.name.monkey.retromusic.Constants;
 import code.name.monkey.retromusic.model.Song;
-import code.name.monkey.retromusic.repository.RealSongRepository;
 
 /**
  * @author Andrew Neal, modified for Phonograph by Karim Abou Zeid
@@ -159,7 +158,30 @@ public class MusicPlaybackQueueStore extends SQLiteOpenHelper {
   @NonNull
   private List<Song> getQueue(@NonNull final String tableName) {
     Cursor cursor = getReadableDatabase().query(tableName, null, null, null, null, null, null);
-    return new RealSongRepository(App.Companion.getContext()).songs(cursor);
+    List<Song> songs = new ArrayList<>();
+    if (cursor != null && cursor.moveToFirst()) {
+      do {
+        Song song = new Song(
+            cursor.getLong(cursor.getColumnIndexOrThrow(BaseColumns._ID)),
+            cursor.getString(cursor.getColumnIndexOrThrow(AudioColumns.TITLE)),
+            cursor.getInt(cursor.getColumnIndexOrThrow(AudioColumns.TRACK)),
+            cursor.getInt(cursor.getColumnIndexOrThrow(AudioColumns.YEAR)),
+            cursor.getLong(cursor.getColumnIndexOrThrow(AudioColumns.DURATION)),
+            cursor.getString(cursor.getColumnIndexOrThrow(Constants.DATA)),
+            cursor.getLong(cursor.getColumnIndexOrThrow(AudioColumns.DATE_MODIFIED)),
+            cursor.getLong(cursor.getColumnIndexOrThrow(AudioColumns.ALBUM_ID)),
+            cursor.getString(cursor.getColumnIndexOrThrow(AudioColumns.ALBUM)),
+            cursor.getLong(cursor.getColumnIndexOrThrow(AudioColumns.ARTIST_ID)),
+            cursor.getString(cursor.getColumnIndexOrThrow(AudioColumns.ARTIST)),
+            cursor.getString(cursor.getColumnIndexOrThrow(AudioColumns.COMPOSER)),
+            null,
+            ""
+        );
+        songs.add(song);
+      } while (cursor.moveToNext());
+    }
+    cursor.close();
+    return songs;
   }
 
   /**

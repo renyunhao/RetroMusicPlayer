@@ -174,6 +174,7 @@ class MusicService : MediaBrowserServiceCompat(),
     private var headsetReceiverRegistered = false
     private var mediaSession: MediaSessionCompat? = null
     private lateinit var mediaStoreObserver: ContentObserver
+    private lateinit var musicFileObserver: MusicFileObserver
     private var musicPlayerHandlerThread: HandlerThread? = null
     private var notHandledMetaChangedForCurrentTrack = false
     private var originalPlayingQueue = ArrayList<Song>()
@@ -318,17 +319,11 @@ class MusicService : MediaBrowserServiceCompat(),
         notificationManager = getSystemService()
         initNotification()
         mediaStoreObserver = MediaStoreObserver(this, playerHandler!!)
+        musicFileObserver = MusicFileObserver {
+            handleAndSendChangeInternal(MEDIA_STORE_CHANGED)
+        }
+        musicFileObserver.startWatching()
         throttledSeekHandler = ThrottledSeekHandler(this, Handler(mainLooper))
-        contentResolver.registerContentObserver(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            true,
-            mediaStoreObserver
-        )
-        contentResolver.registerContentObserver(
-            MediaStore.Audio.Media.INTERNAL_CONTENT_URI,
-            true,
-            mediaStoreObserver
-        )
         val audioVolumeObserver = AudioVolumeObserver(this)
         audioVolumeObserver.register(AudioManager.STREAM_MUSIC, this)
         registerOnSharedPreferenceChangedListener(this)
@@ -360,6 +355,7 @@ class MusicService : MediaBrowserServiceCompat(),
         quit()
         releaseResources()
         serviceScope.cancel()
+        musicFileObserver.stopWatching()
         contentResolver.unregisterContentObserver(mediaStoreObserver)
         unregisterOnSharedPreferenceChangedListener(this)
         wakeLock?.release()

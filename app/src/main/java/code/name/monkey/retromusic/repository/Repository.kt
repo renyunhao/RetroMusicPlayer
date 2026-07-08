@@ -32,6 +32,7 @@ import code.name.monkey.retromusic.util.logE
 
 interface Repository {
 
+    fun refreshSongRepository()
     fun historySong(): List<HistoryEntity>
     fun favorites(): LiveData<List<SongEntity>>
     fun observableHistorySongs(): LiveData<List<Song>>
@@ -114,6 +115,8 @@ class RealRepository(
     private val localDataRepository: LocalDataRepository,
 ) : Repository {
 
+    override fun refreshSongRepository() = songRepository.refresh()
+
     override suspend fun deleteSongs(songs: List<Song>) = roomRepository.deleteSongs(songs)
 
     override suspend fun contributor(): List<Contributor> = localDataRepository.contributors()
@@ -166,7 +169,7 @@ class RealRepository(
         if (playlist is AbsCustomPlaylist) {
             playlist.songs()
         } else {
-            PlaylistSongsLoader.getPlaylistSongList(context, playlist.id)
+            PlaylistSongsLoader.getPlaylistSongList(playlistRepository, playlist.id)
         }
 
     override suspend fun getGenre(genreId: Long): List<Song> = genreRepository.songs(genreId)

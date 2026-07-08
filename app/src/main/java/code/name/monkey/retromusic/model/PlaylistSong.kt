@@ -34,7 +34,8 @@ class PlaylistSong(
     val playlistId: Long,
     val idInPlayList: Long,
     override val composer: String?,
-    override val albumArtist: String?
+    override val albumArtist: String?,
+    override val genre: String
 ) : Song(
     id = id,
     title = title,
@@ -48,7 +49,8 @@ class PlaylistSong(
     artistId = artistId,
     artistName = artistName,
     composer = composer,
-    albumArtist = albumArtist
+    albumArtist = albumArtist,
+    genre = genre
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -73,6 +75,7 @@ class PlaylistSong(
         if (idInPlayList != other.idInPlayList) return false
         if (composer != other.composer) return false
         if (albumArtist != other.albumArtist) return false
+        if (genre != other.genre) return false
 
         return true
     }
@@ -94,6 +97,7 @@ class PlaylistSong(
         result = 31 * result + idInPlayList.hashCode()
         result = 31 * result + composer.hashCode()
         result = 31 * result + (albumArtist?.hashCode() ?: 0)
+        result = 31 * result + genre.hashCode()
         return result
     }
 }

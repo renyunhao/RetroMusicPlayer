@@ -41,6 +41,7 @@ class PlayCountEntity(
     val composer: String?,
     @ColumnInfo(name = "album_artist")
     val albumArtist: String?,
+    val genre: String,
     @ColumnInfo(name = "time_played")
     val timePlayed: Long,
     @ColumnInfo(name = "play_count")

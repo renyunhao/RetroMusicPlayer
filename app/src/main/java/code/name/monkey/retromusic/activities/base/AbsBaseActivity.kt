@@ -21,6 +21,7 @@ import android.graphics.Rect
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -90,11 +91,21 @@ abstract class AbsBaseActivity : AbsThemeActivity() {
     }
 
     protected open fun requestPermissions() {
+        if (VersionUtils.hasR() && !Environment.isExternalStorageManager()) {
+            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            intent.data = Uri.parse("package:" + packageName)
+            startActivity(intent)
+            return
+        }
         ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST)
     }
 
     protected fun hasPermissions(): Boolean {
+        if (VersionUtils.hasR() && !Environment.isExternalStorageManager()) {
+            return false
+        }
         for (permission in permissions) {
+            if (permission == Manifest.permission.MANAGE_EXTERNAL_STORAGE) continue
             if (ActivityCompat.checkSelfPermission(this,
                     permission) != PackageManager.PERMISSION_GRANTED
             ) {

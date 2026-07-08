@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Environment
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.content.res.use
@@ -81,6 +82,7 @@ import code.name.monkey.retromusic.RECENTLY_PLAYED_CUTOFF
 import code.name.monkey.retromusic.REMEMBER_LAST_TAB
 import code.name.monkey.retromusic.SAF_SDCARD_URI
 import code.name.monkey.retromusic.SAVE_LAST_DIRECTORY
+import code.name.monkey.retromusic.SCAN_DIRECTORIES
 import code.name.monkey.retromusic.SCREEN_ON_LYRICS
 import code.name.monkey.retromusic.SHOW_LYRICS
 import code.name.monkey.retromusic.SHOW_WHEN_LOCKED
@@ -497,6 +499,21 @@ object PreferenceUtil {
         }
 
     val filterLength get() = sharedPreferences.getInt(FILTER_SONG, 20)
+
+    val scanDirectories: Set<String>
+        get() {
+            val dirs = sharedPreferences.getStringSet(SCAN_DIRECTORIES, null)
+            if (dirs.isNullOrEmpty()) {
+                return setOf(
+                    getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath
+                )
+            }
+            return dirs
+        }
+
+    var scanDirectoriesValue: Set<String>
+        get() = sharedPreferences.getStringSet(SCAN_DIRECTORIES, emptySet()) ?: emptySet()
+        set(value) = sharedPreferences.edit { putStringSet(SCAN_DIRECTORIES, value) }
 
     var lastVersion
         // This was stored as an integer before now it's a long, so avoid a ClassCastException

@@ -183,6 +183,9 @@ abstract class AbsMusicServiceActivity : AbsBaseActivity(), IMusicServiceEventLi
 
     override fun getPermissionsToRequest(): Array<String> {
         return mutableListOf<String>().apply {
+            if (VersionUtils.hasR()) {
+                add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+            }
             if (VersionUtils.hasT()) {
                 add(Manifest.permission.READ_MEDIA_AUDIO)
                 add(Manifest.permission.POST_NOTIFICATIONS)

@@ -31,8 +31,17 @@ interface PlaylistDao {
     @Query("SELECT * FROM PlaylistEntity")
     suspend fun playlists(): List<PlaylistEntity>
 
+    @Query("SELECT * FROM PlaylistEntity")
+    fun playlistsSync(): List<PlaylistEntity>
+
+    @Query("SELECT * FROM PlaylistEntity WHERE playlist_id = :playlistId")
+    fun playlistById(playlistId: Long): List<PlaylistEntity>
+
     @Query("DELETE FROM SongEntity WHERE playlist_creator_id = :playlistId")
     suspend fun deletePlaylistSongs(playlistId: Long)
+
+    @Query("DELETE FROM SongEntity WHERE playlist_creator_id = :playlistId")
+    fun deletePlaylistSongsSync(playlistId: Long)
 
     @Query("DELETE FROM SongEntity WHERE playlist_creator_id = :playlistId AND id = :songId")
     suspend fun deleteSongFromPlaylist(playlistId: Long, songId: Long)
@@ -56,6 +65,9 @@ interface PlaylistDao {
 
     @Delete
     suspend fun deletePlaylist(playlistEntity: PlaylistEntity)
+
+    @Query("DELETE FROM PlaylistEntity WHERE playlist_id = :playlistId")
+    fun deletePlaylistSync(playlistId: Long)
 
     @Delete
     suspend fun deletePlaylists(playlistEntities: List<PlaylistEntity>)
