@@ -77,10 +77,7 @@ class ThemeSettingsFragment : AbsSettingsFragment() {
         }
         val blackTheme: ATESwitchPreference? = findPreference(BLACK_THEME)
         blackTheme?.setOnPreferenceChangeListener { _, _ ->
-            if (!App.isProVersion()) {
-                showProToastAndNavigate("Just Black theme")
-                return@setOnPreferenceChangeListener false
-            }
+
             ThemeStore.markChanged(requireContext())
             if (VersionUtils.hasNougatMR()) {
                 requireActivity().setTheme(PreferenceUtil.themeResFromPrefValue("black"))

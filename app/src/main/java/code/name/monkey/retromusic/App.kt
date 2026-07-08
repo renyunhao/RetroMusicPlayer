@@ -75,6 +75,5 @@ class App : Application() {
             return instance!!
         }
 
-        fun isProVersion(): Boolean = true
     }
 }

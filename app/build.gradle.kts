@@ -55,15 +55,6 @@ android {
         }
     }
 
-    flavorDimensions += "version"
-    productFlavors {
-        create("normal") {
-            dimension = "version"
-        }
-        create("fdroid") {
-            dimension = "version"
-        }
-    }
 
     buildFeatures {
         viewBinding = true

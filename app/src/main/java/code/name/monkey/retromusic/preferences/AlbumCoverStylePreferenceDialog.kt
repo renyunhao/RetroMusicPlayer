@@ -80,7 +80,7 @@ class AlbumCoverStylePreferenceDialog : DialogFragment(),
                 if (isAlbumCoverStyle(coverStyle)) {
                     val result = getString(coverStyle.titleRes) + " theme is Pro version feature."
                     showToast(result)
-                    requireContext().goToProVersion()
+
                 } else {
                     PreferenceUtil.albumCoverStyle = coverStyle
                 }
@@ -151,5 +151,5 @@ class AlbumCoverStylePreferenceDialog : DialogFragment(),
 }
 
 private fun isAlbumCoverStyle(style: AlbumCoverStyle): Boolean {
-    return (!App.isProVersion() && (style == Circle || style == Card || style == FullCard))
+    return false
 }

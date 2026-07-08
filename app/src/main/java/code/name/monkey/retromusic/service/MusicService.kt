@@ -1258,9 +1258,6 @@ class MusicService : MediaBrowserServiceCompat(),
         playbackManager.switchToLocalPlayback(this::restorePlaybackState)
     }
 
-    fun switchToRemotePlayback(castPlayer: CastPlayer) {
-        playbackManager.switchToRemotePlayback(castPlayer, this::restorePlaybackState)
-    }
 
     private fun restorePlaybackState(wasPlaying: Boolean, progress: Int) {
         playbackManager.setCallbacks(this)

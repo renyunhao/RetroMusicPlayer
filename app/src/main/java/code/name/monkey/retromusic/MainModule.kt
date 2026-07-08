@@ -2,7 +2,7 @@ package code.name.monkey.retromusic
 
 import androidx.room.Room
 import code.name.monkey.retromusic.auto.AutoMusicProvider
-import code.name.monkey.retromusic.cast.RetroWebServer
+
 import code.name.monkey.retromusic.db.MIGRATION_23_24
 import code.name.monkey.retromusic.db.RetroDatabase
 
@@ -62,9 +62,7 @@ private val mainModule = module {
     single {
         androidContext().contentResolver
     }
-    single {
-        RetroWebServer(get())
-    }
+
 }
 private val dataModule = module {
     single {

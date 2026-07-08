@@ -90,7 +90,7 @@ class NowPlayingScreenPreferenceDialog : DialogFragment(), ViewPager.OnPageChang
                     val result =
                         "${getString(nowPlayingScreen.titleRes)} theme is Pro version feature."
                     showToast(result)
-                    requireContext().goToProVersion()
+
                 } else {
                     PreferenceUtil.nowPlayingScreen = nowPlayingScreen
                 }
@@ -147,5 +147,5 @@ private class NowPlayingScreenAdapter(private val context: Context) : PagerAdapt
 }
 
 private fun isNowPlayingThemes(screen: NowPlayingScreen): Boolean {
-    return (screen == Full || screen == Card || screen == Plain || screen == Blur || screen == Color || screen == Simple || screen == BlurCard || screen == Circle || screen == Adaptive) && !App.isProVersion()
+    return false
 }
