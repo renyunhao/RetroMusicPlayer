@@ -263,26 +263,25 @@ class AlbumDetailsFragment : AbsMainActivityFragment(R.layout.fragment_album_det
     }
 
     private fun aboutAlbum(lastFmAlbum: LastFmAlbum) {
-        if (lastFmAlbum.album != null) {
-            if (lastFmAlbum.album.wiki != null) {
-                binding.fragmentAlbumContent.aboutAlbumText.show()
-                binding.fragmentAlbumContent.aboutAlbumTitle.show()
-                binding.fragmentAlbumContent.aboutAlbumTitle.text =
-                    String.format(getString(R.string.about_album_label), lastFmAlbum.album.name)
-                binding.fragmentAlbumContent.aboutAlbumText.text =
-                    lastFmAlbum.album.wiki.content.parseAsHtml()
-            }
-            if (lastFmAlbum.album.listeners.isNotEmpty()) {
-                binding.fragmentAlbumContent.listeners.show()
-                binding.fragmentAlbumContent.listenersLabel.show()
-                binding.fragmentAlbumContent.scrobbles.show()
-                binding.fragmentAlbumContent.scrobblesLabel.show()
+        val album = lastFmAlbum.album ?: return
+        if (album.wiki != null) {
+            binding.fragmentAlbumContent.aboutAlbumText.show()
+            binding.fragmentAlbumContent.aboutAlbumTitle.show()
+            binding.fragmentAlbumContent.aboutAlbumTitle.text =
+                String.format(getString(R.string.about_album_label), album.name)
+            binding.fragmentAlbumContent.aboutAlbumText.text =
+                album.wiki?.content?.parseAsHtml()
+        }
+        if (album.listeners.isNotEmpty()) {
+            binding.fragmentAlbumContent.listeners.show()
+            binding.fragmentAlbumContent.listenersLabel.show()
+            binding.fragmentAlbumContent.scrobbles.show()
+            binding.fragmentAlbumContent.scrobblesLabel.show()
 
-                binding.fragmentAlbumContent.listeners.text =
-                    RetroUtil.formatValue(lastFmAlbum.album.listeners.toFloat())
-                binding.fragmentAlbumContent.scrobbles.text =
-                    RetroUtil.formatValue(lastFmAlbum.album.playcount.toFloat())
-            }
+            binding.fragmentAlbumContent.listeners.text =
+                RetroUtil.formatValue(album.listeners.toFloat())
+            binding.fragmentAlbumContent.scrobbles.text =
+                RetroUtil.formatValue(album.playcount.toFloat())
         }
     }
 

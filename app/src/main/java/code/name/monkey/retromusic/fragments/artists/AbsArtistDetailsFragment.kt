@@ -173,23 +173,24 @@ abstract class AbsArtistDetailsFragment : AbsMainActivityFragment(R.layout.fragm
     }
 
     private fun artistInfo(lastFmArtist: LastFmArtist?) {
-        if (lastFmArtist != null && lastFmArtist.artist != null && lastFmArtist.artist.bio != null) {
-            val bioContent = lastFmArtist.artist.bio.content
+        val lastFmArtistData = lastFmArtist?.artist
+        if (lastFmArtistData != null && lastFmArtistData.bio != null) {
+            val bioContent = lastFmArtistData.bio?.content
             if (bioContent != null && bioContent.trim { it <= ' ' }.isNotEmpty()) {
                 binding.fragmentArtistContent.run {
                     biographyText.isVisible = true
                     biographyTitle.isVisible = true
                     biography = bioContent.parseAsHtml()
                     biographyText.text = biography
-                    if (lastFmArtist.artist.stats.listeners.isNotEmpty()) {
+                    if (lastFmArtistData.stats.listeners.isNotEmpty()) {
                         listeners.show()
                         listenersLabel.show()
                         scrobbles.show()
                         scrobblesLabel.show()
                         listeners.text =
-                            RetroUtil.formatValue(lastFmArtist.artist.stats.listeners.toFloat())
+                            RetroUtil.formatValue(lastFmArtistData.stats.listeners.toFloat())
                         scrobbles.text =
-                            RetroUtil.formatValue(lastFmArtist.artist.stats.playcount.toFloat())
+                            RetroUtil.formatValue(lastFmArtistData.stats.playcount.toFloat())
                     }
                 }
             }

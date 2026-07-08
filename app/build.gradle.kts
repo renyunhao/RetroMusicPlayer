@@ -24,7 +24,7 @@ android {
         versionCode = 10660
         versionName = "6.6.0"
 
-        buildConfigField("String", "GOOGLE_PLAY_LICENSING_KEY", "\"${getProperty(getProperties("../public.properties"), "GOOGLE_PLAY_LICENSE_KEY")}\"")
+        buildConfigField("String", "GOOGLE_PLAY_LICENSING_KEY", "\"\"")
     }
     val signingProperties = getProperties("retro.properties")
     val theSigningConfig = if (signingProperties != null) {
@@ -111,11 +111,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.palette.ktx)
 
-    implementation(libs.androidx.mediarouter)
-    //Cast Dependencies
-    "normalImplementation"(libs.google.play.services.cast.framework)
-    //WebServer by NanoHttpd
-    "normalImplementation"(libs.nanohttpd)
+
 
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
@@ -131,16 +127,8 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
 
-    "normalImplementation"(libs.google.feature.delivery)
-    "normalImplementation"(libs.google.play.review)
-    "normalImplementation"(libs.google.play.billing)
 
-
-            implementation(libs.android.material)
-
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
-    implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.android.material)
 
     implementation(libs.afollestad.material.dialogs.core)
     implementation(libs.afollestad.material.dialogs.input)
@@ -154,7 +142,9 @@ dependencies {
 
     implementation(libs.glide)
     ksp(libs.glide.ksp)
-    implementation(libs.glide.okhttp3.integration)
+
+    implementation(libs.gson)
+
 
     implementation(libs.advrecyclerview)
 
@@ -166,7 +156,7 @@ dependencies {
     implementation(libs.chrisbanes.insetter)
 
 
-    implementation(libs.org.eclipse.egit.github.core)
+
     implementation(libs.jaudiotagger)
     implementation(libs.slidableactivity)
     implementation(libs.material.intro)
@@ -175,6 +165,7 @@ dependencies {
     implementation(libs.tankery.circularSeekBar)
 
     implementation(libs.androidx.exoplayer)
+    implementation(libs.androidx.media)
 }
 
 fun getProperties(fileName: String): Properties? {

@@ -5,37 +5,21 @@ import code.name.monkey.retromusic.auto.AutoMusicProvider
 import code.name.monkey.retromusic.cast.RetroWebServer
 import code.name.monkey.retromusic.db.MIGRATION_23_24
 import code.name.monkey.retromusic.db.RetroDatabase
+
 import code.name.monkey.retromusic.fragments.LibraryViewModel
 import code.name.monkey.retromusic.fragments.albums.AlbumDetailsViewModel
 import code.name.monkey.retromusic.fragments.artists.ArtistDetailsViewModel
+
 import code.name.monkey.retromusic.fragments.genres.GenreDetailsViewModel
 import code.name.monkey.retromusic.fragments.playlists.PlaylistDetailsViewModel
 import code.name.monkey.retromusic.model.Genre
-import code.name.monkey.retromusic.network.provideDefaultCache
-import code.name.monkey.retromusic.network.provideLastFmRest
-import code.name.monkey.retromusic.network.provideLastFmRetrofit
-import code.name.monkey.retromusic.network.provideOkHttp
+
 import code.name.monkey.retromusic.repository.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-val networkModule = module {
-
-    factory {
-        provideDefaultCache()
-    }
-    factory {
-        provideOkHttp(get(), get())
-    }
-    single {
-        provideLastFmRetrofit(get())
-    }
-    single {
-        provideLastFmRest(get())
-    }
-}
 
 private val roomModule = module {
 
@@ -96,7 +80,7 @@ private val dataModule = module {
             get(),
             get(),
             get(),
-            get(),
+
         )
     } bind Repository::class
 
@@ -182,4 +166,4 @@ private val viewModules = module {
     }
 }
 
-val appModules = listOf(mainModule, dataModule, autoModule, viewModules, networkModule, roomModule)
+val appModules = listOf(mainModule, dataModule, autoModule, viewModules, roomModule)

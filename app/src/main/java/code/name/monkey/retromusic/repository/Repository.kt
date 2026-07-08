@@ -22,7 +22,7 @@ import code.name.monkey.retromusic.db.*
 import code.name.monkey.retromusic.fragments.search.Filter
 import code.name.monkey.retromusic.model.*
 import code.name.monkey.retromusic.model.smartplaylist.NotPlayedPlaylist
-import code.name.monkey.retromusic.network.LastFMService
+
 import code.name.monkey.retromusic.network.Result
 import code.name.monkey.retromusic.network.Result.Error
 import code.name.monkey.retromusic.network.Result.Success
@@ -101,7 +101,7 @@ interface Repository {
 
 class RealRepository(
     private val context: Context,
-    private val lastFMService: LastFMService,
+
     private val songRepository: SongRepository,
     private val albumRepository: AlbumRepository,
     private val artistRepository: ArtistRepository,
@@ -176,25 +176,14 @@ class RealRepository(
         lang: String?,
         cache: String?,
     ): Result<LastFmArtist> {
-        return try {
-            Success(lastFMService.artistInfo(name, lang, cache))
-        } catch (e: Exception) {
-            logE(e)
-            Error(e)
-        }
+        return Error(IllegalStateException("Offline mode"))
     }
 
     override suspend fun albumInfo(
         artist: String,
         album: String,
     ): Result<LastFmAlbum> {
-        return try {
-            val lastFmAlbum = lastFMService.albumInfo(artist, album)
-            Success(lastFmAlbum)
-        } catch (e: Exception) {
-            logE(e)
-            Error(e)
-        }
+        return Error(IllegalStateException("Offline mode"))
     }
 
     override suspend fun homeSections(): List<Home> {
