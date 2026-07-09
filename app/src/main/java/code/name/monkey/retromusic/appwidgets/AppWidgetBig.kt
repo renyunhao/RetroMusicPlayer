@@ -51,6 +51,9 @@ class AppWidgetBig : BaseAppWidget() {
         appWidgetView.setViewVisibility(R.id.media_titles, View.INVISIBLE)
         appWidgetView.setTextViewText(R.id.lyrics_line1, "")
         appWidgetView.setTextViewText(R.id.lyrics_line2, "")
+        appWidgetView.setTextViewText(R.id.lyrics_line3, "")
+        appWidgetView.setTextViewText(R.id.lyrics_line4, "")
+        appWidgetView.setTextViewText(R.id.lyrics_line5, "")
         appWidgetView.setImageViewResource(R.id.image, R.drawable.default_audio_art)
 
         val btnColor = MaterialValueHelper.getPrimaryTextColor(context, false)
@@ -162,6 +165,9 @@ class AppWidgetBig : BaseAppWidget() {
         appWidgetView.setTextColor(R.id.text, lastSecondaryTextColor)
         appWidgetView.setTextColor(R.id.lyrics_line1, lastPrimaryTextColor)
         appWidgetView.setTextColor(R.id.lyrics_line2, lastSecondaryTextColor)
+        appWidgetView.setTextColor(R.id.lyrics_line3, lastSecondaryTextColor)
+        appWidgetView.setTextColor(R.id.lyrics_line4, lastSecondaryTextColor)
+        appWidgetView.setTextColor(R.id.lyrics_line5, lastSecondaryTextColor)
 
         if (bitmap != null) {
             appWidgetView.setImageViewBitmap(R.id.image, bitmap)
@@ -223,17 +229,26 @@ class AppWidgetBig : BaseAppWidget() {
         )
 
         if (line.isNotEmpty()) {
-            val nextLine = getNextLine(service.songProgressMillis)
+            val nextLines = getNextLines(service.songProgressMillis, 4)
             appWidgetView.setTextViewText(R.id.lyrics_line1, line)
-            appWidgetView.setTextViewText(R.id.lyrics_line2, nextLine)
+            appWidgetView.setTextViewText(R.id.lyrics_line2, nextLines.getOrElse(0) { "" })
+            appWidgetView.setTextViewText(R.id.lyrics_line3, nextLines.getOrElse(1) { "" })
+            appWidgetView.setTextViewText(R.id.lyrics_line4, nextLines.getOrElse(2) { "" })
+            appWidgetView.setTextViewText(R.id.lyrics_line5, nextLines.getOrElse(3) { "" })
         } else {
             appWidgetView.setTextViewText(R.id.lyrics_line1, "")
             appWidgetView.setTextViewText(R.id.lyrics_line2, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line3, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line4, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line5, "")
         }
 
         if (lastBgColor != 0) {
             appWidgetView.setTextColor(R.id.lyrics_line1, lastPrimaryTextColor)
             appWidgetView.setTextColor(R.id.lyrics_line2, lastSecondaryTextColor)
+            appWidgetView.setTextColor(R.id.lyrics_line3, lastSecondaryTextColor)
+            appWidgetView.setTextColor(R.id.lyrics_line4, lastSecondaryTextColor)
+            appWidgetView.setTextColor(R.id.lyrics_line5, lastSecondaryTextColor)
         }
 
         val appWidgetManager = AppWidgetManager.getInstance(service)
@@ -247,6 +262,12 @@ class AppWidgetBig : BaseAppWidget() {
         val syncedLyrics = lyrics as? AbsSynchronizedLyrics ?: return ""
         if (!syncedLyrics.isValid) return ""
         return syncedLyrics.getNextLine(progress) ?: ""
+    }
+
+    private fun getNextLines(progress: Int, count: Int): List<String> {
+        val syncedLyrics = lyrics as? AbsSynchronizedLyrics ?: return emptyList()
+        if (!syncedLyrics.isValid) return emptyList()
+        return syncedLyrics.getNextLines(progress, count)
     }
 
     private fun loadLyrics(service: MusicService, song: Song) {
@@ -271,12 +292,18 @@ class AppWidgetBig : BaseAppWidget() {
         val syncedLyrics = lyrics as? AbsSynchronizedLyrics
         if (syncedLyrics != null && syncedLyrics.isValid) {
             val currentLine = syncedLyrics.getLine(progress)
-            val nextLine = getNextLine(progress)
+            val nextLines = getNextLines(progress, 4)
             appWidgetView.setTextViewText(R.id.lyrics_line1, currentLine)
-            appWidgetView.setTextViewText(R.id.lyrics_line2, nextLine)
+            appWidgetView.setTextViewText(R.id.lyrics_line2, nextLines.getOrElse(0) { "" })
+            appWidgetView.setTextViewText(R.id.lyrics_line3, nextLines.getOrElse(1) { "" })
+            appWidgetView.setTextViewText(R.id.lyrics_line4, nextLines.getOrElse(2) { "" })
+            appWidgetView.setTextViewText(R.id.lyrics_line5, nextLines.getOrElse(3) { "" })
         } else {
-            appWidgetView.setTextViewText(R.id.lyrics_line2, "")
             appWidgetView.setTextViewText(R.id.lyrics_line1, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line2, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line3, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line4, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line5, "")
         }
     }
 

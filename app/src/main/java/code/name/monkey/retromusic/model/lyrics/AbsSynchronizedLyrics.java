@@ -16,6 +16,9 @@ package code.name.monkey.retromusic.model.lyrics;
 
 import android.util.SparseArray;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class AbsSynchronizedLyrics extends Lyrics {
 
   private static final int TIME_OFFSET_MS =
@@ -75,6 +78,32 @@ public abstract class AbsSynchronizedLyrics extends Lyrics {
     }
 
     return "";
+  }
+
+  public List<String> getNextLines(int time, int count) {
+    time += offset + AbsSynchronizedLyrics.TIME_OFFSET_MS;
+    List<String> result = new ArrayList<>();
+
+    int currentLineIndex = -1;
+    for (int i = 0; i < lines.size(); i++) {
+      int lineTime = lines.keyAt(i);
+      if (time >= lineTime) {
+        currentLineIndex = i;
+      } else {
+        break;
+      }
+    }
+
+    for (int i = 1; i <= count; i++) {
+      int nextIndex = currentLineIndex + i;
+      if (nextIndex < lines.size()) {
+        result.add(lines.valueAt(nextIndex));
+      } else {
+        result.add("");
+      }
+    }
+
+    return result;
   }
 
   @Override

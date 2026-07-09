@@ -73,7 +73,7 @@
                 android:id="@+id/lyrics_line1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:maxLines="1"
                 android:textColor="@color/ate_primary_text_dark"
                 android:textSize="13sp"
                 tools:text="lyrics_line1" />
@@ -82,11 +82,41 @@
                 android:id="@+id/lyrics_line2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:alpha="0.5"
-                android:maxLines="2"
+                android:alpha="0.7"
+                android:maxLines="1"
                 android:textColor="@color/ate_secondary_text_dark"
                 android:textSize="12sp"
                 tools:text="lyrics_line2" />
+
+            <TextView
+                android:id="@+id/lyrics_line3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.5"
+                android:maxLines="1"
+                android:textColor="@color/ate_secondary_text_dark"
+                android:textSize="12sp"
+                tools:text="lyrics_line3" />
+
+            <TextView
+                android:id="@+id/lyrics_line4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.35"
+                android:maxLines="1"
+                android:textColor="@color/ate_secondary_text_dark"
+                android:textSize="12sp"
+                tools:text="lyrics_line4" />
+
+            <TextView
+                android:id="@+id/lyrics_line5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.2"
+                android:maxLines="1"
+                android:textColor="@color/ate_secondary_text_dark"
+                android:textSize="12sp"
+                tools:text="lyrics_line5" />
 
         </LinearLayout>
 

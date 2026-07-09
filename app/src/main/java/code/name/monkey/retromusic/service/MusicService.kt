@@ -270,6 +270,7 @@ class MusicService : MediaBrowserServiceCompat(),
     private var throttledSeekHandler: ThrottledSeekHandler? = null
     private var uiThreadHandler: Handler? = null
     private var currentLyricsLine: String = ""
+    private var currentClassicLyricsLine: String = ""
     private val lyricsUpdateRunnable = object : Runnable {
         override fun run() {
             if (isPlaying) {
@@ -277,6 +278,11 @@ class MusicService : MediaBrowserServiceCompat(),
                 if (line != currentLyricsLine) {
                     currentLyricsLine = line
                     appWidgetBig.notifyLyricsLineChanged(this@MusicService, line)
+                }
+                val classicLine = appWidgetClassic.getCurrentLyricsLine(this@MusicService, songProgressMillis)
+                if (classicLine != currentClassicLyricsLine) {
+                    currentClassicLyricsLine = classicLine
+                    appWidgetClassic.notifyLyricsLineChanged(this@MusicService, classicLine)
                 }
             }
             uiThreadHandler?.postDelayed(this, LYRICS_UPDATE_INTERVAL)
@@ -1157,7 +1163,9 @@ class MusicService : MediaBrowserServiceCompat(),
 
             META_CHANGED -> {
                 currentLyricsLine = ""
+                currentClassicLyricsLine = ""
                 appWidgetBig.onSongChanged(this@MusicService)
+                appWidgetClassic.onSongChanged(this@MusicService)
                 // We must call updateMediaSessionPlaybackState after the load of album art is completed
                 // if we are loading it or it won't be updated in the notification
                 updateMediaSessionMetaData {

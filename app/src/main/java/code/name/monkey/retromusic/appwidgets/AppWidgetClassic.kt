@@ -15,6 +15,7 @@
 package code.name.monkey.retromusic.appwidgets
 
 import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -30,6 +31,8 @@ import code.name.monkey.retromusic.appwidgets.base.BaseAppWidget
 import code.name.monkey.retromusic.extensions.getTintedDrawable
 import code.name.monkey.retromusic.glide.RetroGlideExtension
 import code.name.monkey.retromusic.model.Song
+import code.name.monkey.retromusic.model.lyrics.AbsSynchronizedLyrics
+import code.name.monkey.retromusic.model.lyrics.Lyrics
 import code.name.monkey.retromusic.service.MusicService
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_SONG
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_PREVIOUS
@@ -37,6 +40,7 @@ import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_SKIP
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_TOGGLE_PAUSE
 import code.name.monkey.retromusic.service.MusicService.Companion.CYCLE_REPEAT
 import code.name.monkey.retromusic.service.MusicService.Companion.TOGGLE_SHUFFLE
+import code.name.monkey.retromusic.util.LyricUtil
 import code.name.monkey.retromusic.util.PreferenceUtil
 import code.name.monkey.retromusic.util.color.MediaNotificationProcessor
 import com.bumptech.glide.Glide
@@ -46,11 +50,18 @@ import com.bumptech.glide.request.transition.Transition
 
 class AppWidgetClassic : BaseAppWidget() {
     private var target: Target<Bitmap>? = null
+    private var lyrics: Lyrics? = null
+    private var currentSongId: Long = -1
+    private var lastBgColor: Int = 0
+    private var lastPrimaryTextColor: Int = 0
+    private var lastSecondaryTextColor: Int = 0
 
     override fun defaultAppWidget(context: Context, appWidgetIds: IntArray) {
         val appWidgetView = RemoteViews(context.packageName, R.layout.app_widget_classic)
 
         appWidgetView.setViewVisibility(R.id.media_titles, View.INVISIBLE)
+        appWidgetView.setTextViewText(R.id.lyrics_line1, "")
+        appWidgetView.setTextViewText(R.id.lyrics_line2, "")
         appWidgetView.setImageViewResource(R.id.image, R.drawable.default_audio_art)
 
         val btnColor = MaterialValueHelper.getSecondaryTextColor(context, true)
@@ -98,6 +109,9 @@ class AppWidgetClassic : BaseAppWidget() {
             appWidgetView.setViewVisibility(R.id.media_titles, View.VISIBLE)
             appWidgetView.setTextViewText(R.id.title, getSongFullTitle(song))
         }
+
+        loadLyrics(service, song)
+        updateLyricsView(appWidgetView, service.songProgressMillis)
 
         linkButtons(service, appWidgetView)
 
@@ -148,13 +162,14 @@ class AppWidgetClassic : BaseAppWidget() {
             MediaNotificationProcessor.errorColor(context)
         }
 
-        val bgColor = processor.backgroundColor
-        val primaryTextColor = processor.primaryTextColor
-        val secondaryTextColor = processor.secondaryTextColor
+        lastBgColor = processor.backgroundColor
+        lastPrimaryTextColor = processor.primaryTextColor
+        lastSecondaryTextColor = processor.secondaryTextColor
 
-        appWidgetView.setInt(R.id.content, "setBackgroundColor", bgColor)
-        appWidgetView.setTextColor(R.id.title, primaryTextColor)
-        appWidgetView.setTextColor(R.id.text, secondaryTextColor)
+        appWidgetView.setInt(R.id.content, "setBackgroundColor", lastBgColor)
+        appWidgetView.setTextColor(R.id.title, lastPrimaryTextColor)
+        appWidgetView.setTextColor(R.id.lyrics_line1, lastPrimaryTextColor)
+        appWidgetView.setTextColor(R.id.lyrics_line2, lastSecondaryTextColor)
 
         if (bitmap != null) {
             val image = getAlbumArtDrawable(service, bitmap)
@@ -171,30 +186,116 @@ class AppWidgetClassic : BaseAppWidget() {
 
         appWidgetView.setImageViewBitmap(
             R.id.button_toggle_play_pause,
-            service.getTintedDrawable(playPauseRes, primaryTextColor).toBitmap()
+            service.getTintedDrawable(playPauseRes, lastPrimaryTextColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_next,
-            service.getTintedDrawable(R.drawable.ic_skip_next, primaryTextColor).toBitmap()
+            service.getTintedDrawable(R.drawable.ic_skip_next, lastPrimaryTextColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_prev,
-            service.getTintedDrawable(R.drawable.ic_skip_previous, primaryTextColor).toBitmap()
+            service.getTintedDrawable(R.drawable.ic_skip_previous, lastPrimaryTextColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_delete,
-            service.getTintedDrawable(R.drawable.ic_delete, secondaryTextColor).toBitmap()
+            service.getTintedDrawable(R.drawable.ic_delete, lastSecondaryTextColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_repeat,
-            service.getTintedDrawable(getRepeatDrawable(service), secondaryTextColor).toBitmap()
+            service.getTintedDrawable(getRepeatDrawable(service), lastSecondaryTextColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_shuffle,
-            service.getTintedDrawable(getShuffleDrawable(service), secondaryTextColor).toBitmap()
+            service.getTintedDrawable(getShuffleDrawable(service), lastSecondaryTextColor).toBitmap()
         )
 
         pushUpdate(context, appWidgetIds, appWidgetView)
+    }
+
+    fun onSongChanged(service: MusicService) {
+        currentSongId = -1
+        lyrics = null
+        loadLyrics(service, service.currentSong)
+    }
+
+    fun getCurrentLyricsLine(service: MusicService, progress: Int): String {
+        val syncedLyrics = lyrics as? AbsSynchronizedLyrics
+        if (syncedLyrics != null && syncedLyrics.isValid) {
+            return syncedLyrics.getLine(progress) ?: ""
+        }
+        return ""
+    }
+
+    fun notifyLyricsLineChanged(service: MusicService, line: String) {
+        if (!hasInstances(service)) return
+
+        val appWidgetView = RemoteViews(
+            service.packageName, R.layout.app_widget_classic
+        )
+
+        if (line.isNotEmpty()) {
+            val nextLine = getNextLine(service.songProgressMillis)
+            appWidgetView.setTextViewText(R.id.lyrics_line1, line)
+            appWidgetView.setTextViewText(R.id.lyrics_line2, nextLine)
+        } else {
+            appWidgetView.setTextViewText(R.id.lyrics_line1, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line2, "")
+        }
+
+        if (lastBgColor != 0) {
+            appWidgetView.setTextColor(R.id.lyrics_line1, lastPrimaryTextColor)
+            appWidgetView.setTextColor(R.id.lyrics_line2, lastSecondaryTextColor)
+        }
+
+        val appWidgetManager = AppWidgetManager.getInstance(service)
+        val ids = appWidgetManager.getAppWidgetIds(
+            ComponentName(service, AppWidgetClassic::class.java)
+        )
+        pushUpdate(service, ids, appWidgetView)
+    }
+
+    private fun getNextLine(progress: Int): String {
+        val syncedLyrics = lyrics as? AbsSynchronizedLyrics ?: return ""
+        if (!syncedLyrics.isValid) return ""
+        return syncedLyrics.getNextLine(progress) ?: ""
+    }
+
+    private fun loadLyrics(service: MusicService, song: Song) {
+        if (song.id != currentSongId) {
+            currentSongId = song.id
+            lyrics = null
+            Thread {
+                val lrcFile = LyricUtil.getSyncedLyricsFile(song)
+                val lrcData = if (lrcFile != null) {
+                    LyricUtil.getStringFromLrc(lrcFile)
+                } else {
+                    LyricUtil.getEmbeddedSyncedLyrics(song.data)
+                }
+                if (!lrcData.isNullOrEmpty()) {
+                    lyrics = Lyrics.parse(song, lrcData)
+                }
+            }.start()
+        }
+    }
+
+    private fun updateLyricsView(appWidgetView: RemoteViews, progress: Int) {
+        val syncedLyrics = lyrics as? AbsSynchronizedLyrics
+        if (syncedLyrics != null && syncedLyrics.isValid) {
+            val currentLine = syncedLyrics.getLine(progress)
+            val nextLine = getNextLine(progress)
+            appWidgetView.setTextViewText(R.id.lyrics_line1, currentLine)
+            appWidgetView.setTextViewText(R.id.lyrics_line2, nextLine)
+        } else {
+            appWidgetView.setTextViewText(R.id.lyrics_line1, "")
+            appWidgetView.setTextViewText(R.id.lyrics_line2, "")
+        }
+    }
+
+    private fun hasInstances(context: Context): Boolean {
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        return appWidgetManager.getAppWidgetIds(
+            ComponentName(context, AppWidgetClassic::class.java)
+        ).isNotEmpty()
     }
 
     private fun linkButtons(context: Context, views: RemoteViews) {
