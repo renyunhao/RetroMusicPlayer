@@ -25,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.core.text.parseAsHtml
 import androidx.fragment.app.DialogFragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import code.name.monkey.appthemehelper.util.VersionUtils
 import code.name.monkey.retromusic.EXTRA_SONG
 import code.name.monkey.retromusic.R
@@ -36,15 +37,20 @@ import code.name.monkey.retromusic.fragments.LibraryViewModel
 import code.name.monkey.retromusic.fragments.ReloadType
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
 import code.name.monkey.retromusic.model.Song
+import code.name.monkey.retromusic.repository.SongRepository
+import code.name.monkey.retromusic.service.MusicService
 import code.name.monkey.retromusic.util.MusicUtil
 import code.name.monkey.retromusic.util.SAFUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.getViewModel
+import org.koin.core.context.GlobalContext
 
 class DeleteSongsDialog : DialogFragment() {
     lateinit var libraryViewModel: LibraryViewModel
+    private lateinit var songs: List<Song>
 
     // Activity Result Launchers for the new API
     private val safGuideResultLauncher = registerForActivityResult(
@@ -89,7 +95,7 @@ class DeleteSongsDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         libraryViewModel = activity?.getViewModel() as LibraryViewModel
-        val songs = extraNotNull<List<Song>>(EXTRA_SONG).value
+        songs = extraNotNull<List<Song>>(EXTRA_SONG).value
         if (VersionUtils.hasR()) {
             val deleteResultLauncher =
                 registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -98,7 +104,11 @@ class DeleteSongsDialog : DialogFragment() {
                             MusicPlayerRemote.playNextSong()
                         }
                         MusicPlayerRemote.removeFromQueue(songs)
-                        reloadTabs()
+                        val ctx = context ?: return@registerForActivityResult
+                        CoroutineScope(Dispatchers.IO).launch {
+                            GlobalContext.get().get<SongRepository>().refresh()
+                            reloadTabs(ctx)
+                        }
                     }
                     dismiss()
                 }
@@ -137,10 +147,11 @@ class DeleteSongsDialog : DialogFragment() {
                         MusicPlayerRemote.playNextSong()
                     }
                     if (!SAFUtil.isSAFRequiredForSongs(songs)) {
+                        val ctx = context ?: return@positiveButton
                         CoroutineScope(Dispatchers.IO).launch {
                             dismiss()
-                            MusicUtil.deleteTracks(requireContext(), songs)
-                            reloadTabs()
+                            MusicUtil.deleteTracks(ctx, songs)
+                            reloadTabs(ctx)
                         }
                     } else {
                         if (SAFUtil.isSDCardAccessGranted(requireActivity())) {
@@ -156,18 +167,25 @@ class DeleteSongsDialog : DialogFragment() {
     }
 
     fun deleteSongs(songs: List<Song>) {
+        val ctx = context ?: return
         CoroutineScope(Dispatchers.IO).launch {
             dismiss()
             MusicUtil.deleteTracks(requireActivity(), songs, null, null)
-            reloadTabs()
+            reloadTabs(ctx)
         }
     }
 
-    private fun reloadTabs() {
+    private suspend fun reloadTabs(context: android.content.Context) {
+        libraryViewModel.deleteSongsFromAllPlaylists(songs.map { it.id })
         libraryViewModel.forceReload(ReloadType.Songs)
         libraryViewModel.forceReload(ReloadType.HomeSections)
         libraryViewModel.forceReload(ReloadType.Artists)
         libraryViewModel.forceReload(ReloadType.Albums)
         libraryViewModel.forceReload(ReloadType.PlayCount)
+        libraryViewModel.forceReload(ReloadType.Playlists)
+        withContext(Dispatchers.Main) {
+            LocalBroadcastManager.getInstance(context)
+                .sendBroadcast(Intent(MusicService.MEDIA_STORE_CHANGED))
+        }
     }
 }

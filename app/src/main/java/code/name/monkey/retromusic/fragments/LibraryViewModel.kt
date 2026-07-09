@@ -207,6 +207,10 @@ class LibraryViewModel(
         }
     }
 
+    suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>) {
+        repository.deleteSongsFromAllPlaylists(songIds)
+    }
+
     fun deleteSongsFromPlaylist(playlists: List<PlaylistEntity>) = viewModelScope.launch(IO) {
         repository.deletePlaylistSongs(playlists)
     }

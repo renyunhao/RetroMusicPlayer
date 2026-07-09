@@ -40,6 +40,7 @@ interface RoomRepository {
     suspend fun findSongExistInPlayCount(songId: Long): PlayCountEntity?
     suspend fun playCountSongs(): List<PlayCountEntity>
     suspend fun deleteSongs(songs: List<Song>)
+    suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>)
     suspend fun isSongFavorite(context: Context, songId: Long): Boolean
     fun checkPlaylistExists(playListId: Long): LiveData<Boolean>
     fun getPlaylist(playlistId: Long): LiveData<PlaylistWithSongs>
@@ -171,6 +172,10 @@ class RealRoomRepository(
 
     override suspend fun deleteSongs(songs: List<Song>) = songs.forEach {
         playCountDao.deleteSong(it.id)
+    }
+
+    override suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>) {
+        playlistDao.deleteSongsFromAllPlaylists(songIds)
     }
 
     override suspend fun isSongFavorite(context: Context, songId: Long): Boolean {

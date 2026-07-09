@@ -84,4 +84,7 @@ interface PlaylistDao {
 
     @Query("SELECT EXISTS(SELECT * FROM PlaylistEntity WHERE playlist_id = :playlistId)")
     fun checkPlaylistExists(playlistId: Long): LiveData<Boolean>
+
+    @Query("DELETE FROM SongEntity WHERE id IN (:songIds)")
+    suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>)
 }

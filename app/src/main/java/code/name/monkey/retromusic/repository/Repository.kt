@@ -90,6 +90,7 @@ interface Repository {
     suspend fun findSongExistInPlayCount(songId: Long): PlayCountEntity?
     suspend fun playCountSongs(): List<PlayCountEntity>
     suspend fun deleteSongs(songs: List<Song>)
+    suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>)
     suspend fun contributor(): List<Contributor>
     suspend fun searchArtists(query: String): List<Artist>
     suspend fun searchSongs(query: String): List<Song>
@@ -118,6 +119,9 @@ class RealRepository(
     override fun refreshSongRepository() = songRepository.refresh()
 
     override suspend fun deleteSongs(songs: List<Song>) = roomRepository.deleteSongs(songs)
+
+    override suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>) =
+        roomRepository.deleteSongsFromAllPlaylists(songIds)
 
     override suspend fun contributor(): List<Contributor> = localDataRepository.contributors()
 
