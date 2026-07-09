@@ -124,13 +124,31 @@ abstract class BaseAppWidget : AppWidgetProvider() {
         }
     }
 
-    protected fun getSongTitle(song: Song): String {
+    protected fun getSongSimpleTitle(song: Song): String {
+        return song.title
+    }
+
+    protected fun getSongFullTitle(song: Song): String {
         val builder = StringBuilder()
         builder.append(song.title)
-        if (song.artistName.isNotEmpty() && song.title.isNotEmpty()) {
+        if (song.title.isNotEmpty()) {
             builder.append(" • ")
         }
         builder.append(song.artistName)
+        if (song.artistName.isNotEmpty()) {
+            builder.append(" • ")
+        }
+        builder.append(song.albumName)
+        return builder.toString()
+    }
+
+    protected fun getSongArtistAndAlbum(song: Song): String {
+        val builder = StringBuilder()
+        builder.append(song.artistName)
+        if (song.artistName.isNotEmpty()) {
+            builder.append(" • ")
+        }
+        builder.append(song.albumName)
         return builder.toString()
     }
 

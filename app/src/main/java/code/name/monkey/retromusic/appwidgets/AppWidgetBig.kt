@@ -104,7 +104,8 @@ class AppWidgetBig : BaseAppWidget() {
             appWidgetView.setViewVisibility(R.id.media_titles, View.INVISIBLE)
         } else {
             appWidgetView.setViewVisibility(R.id.media_titles, View.VISIBLE)
-            appWidgetView.setTextViewText(R.id.title, getSongTitle(song))
+            appWidgetView.setTextViewText(R.id.title, getSongSimpleTitle(song))
+            appWidgetView.setTextViewText(R.id.text, getSongArtistAndAlbum(song))
         }
 
         loadLyrics(service, song)

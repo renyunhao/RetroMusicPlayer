@@ -21,6 +21,7 @@
     <dimen name="app_widget_classic_min_height">40dp</dimen>
     <dimen name="app_widget_classic_card_radius">2dp</dimen>
 
+    <dimen name="app_widget_big_image_size">192dp</dimen>
     <dimen name="app_widget_big_min_width">318dp</dimen>
     <dimen name="app_widget_big_min_height">100dp</dimen>
 

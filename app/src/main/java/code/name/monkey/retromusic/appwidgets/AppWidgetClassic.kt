@@ -96,7 +96,7 @@ class AppWidgetClassic : BaseAppWidget() {
             appWidgetView.setViewVisibility(R.id.media_titles, View.INVISIBLE)
         } else {
             appWidgetView.setViewVisibility(R.id.media_titles, View.VISIBLE)
-            appWidgetView.setTextViewText(R.id.title, getSongTitle(song))
+            appWidgetView.setTextViewText(R.id.title, getSongFullTitle(song))
         }
 
         linkButtons(service, appWidgetView)
