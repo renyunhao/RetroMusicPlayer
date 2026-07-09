@@ -39,6 +39,7 @@ import code.name.monkey.retromusic.util.ImageUtil
 import code.name.monkey.retromusic.util.MusicUtil
 import code.name.monkey.retromusic.util.RetroColorUtil
 import code.name.monkey.retromusic.util.logD
+import java.io.File
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.ImageViewTarget
@@ -168,7 +169,7 @@ class SongTagEditorActivity : AbsTagEditorActivity<ActivitySongTagEditorBinding>
 
     override fun getSongPaths(): List<String> = listOf(songRepository.song(id).data)
 
-    override fun getSongUris(): List<Uri> = listOf(MusicUtil.getSongFileUri(id))
+    override fun getSongUris(): List<Uri> = listOf(Uri.fromFile(File(songRepository.song(id).data)))
 
     override fun loadImageFromFile(selectedFile: Uri?) {
         Glide.with(this@SongTagEditorActivity)

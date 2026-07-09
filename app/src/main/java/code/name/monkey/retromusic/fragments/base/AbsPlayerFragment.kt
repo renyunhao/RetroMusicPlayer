@@ -224,18 +224,7 @@ abstract class AbsPlayerFragment(@LayoutRes layout: Int) : AbsMusicServiceFragme
             }
 
             R.id.action_go_to_genre -> {
-                val retriever = MediaMetadataRetriever()
-                val trackUri =
-                    ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        song.id
-                    )
-                retriever.setDataSource(activity, trackUri)
-                var genre: String? =
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
-                if (genre == null) {
-                    genre = "Not Specified"
-                }
+                val genre = if (song.genre.isNotBlank()) song.genre else "Not Specified"
                 showToast(genre)
                 return true
             }

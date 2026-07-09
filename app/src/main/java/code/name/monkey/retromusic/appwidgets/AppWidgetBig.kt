@@ -97,6 +97,9 @@ class AppWidgetBig : BaseAppWidget() {
         val isPlaying = service.isPlaying
         val song = service.currentSong
 
+        if (song == Song.emptySong)
+            return;
+
         if (song.title.isEmpty() && song.artistName.isEmpty()) {
             appWidgetView.setViewVisibility(R.id.media_titles, View.INVISIBLE)
         } else {

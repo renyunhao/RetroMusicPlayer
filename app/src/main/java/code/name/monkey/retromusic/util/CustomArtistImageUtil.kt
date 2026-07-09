@@ -85,10 +85,7 @@ class CustomArtistImageUtil private constructor(context: Context) {
             mPreferences.edit { putBoolean(getFileName(artist), true) }
             ArtistSignatureUtil.getInstance(context)
                 .updateArtistSignature(artist.name)
-            context.contentResolver.notifyChange(
-                MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
-                null
-            ) // trigger media store changed to force artist image reload
+
         }
     }
 
@@ -96,10 +93,7 @@ class CustomArtistImageUtil private constructor(context: Context) {
         withContext(IO) {
             mPreferences.edit { putBoolean(getFileName(artist), false) }
             ArtistSignatureUtil.getInstance(App.getContext()).updateArtistSignature(artist.name)
-            App.getContext().contentResolver.notifyChange(
-                MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
-                null
-            ) // trigger media store changed to force artist image reload
+
 
             val file = getFile(artist)
             if (file.exists()) {

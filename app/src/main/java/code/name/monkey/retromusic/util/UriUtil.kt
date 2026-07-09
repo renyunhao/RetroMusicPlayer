@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import code.name.monkey.retromusic.Constants
+import java.io.File
 
 object UriUtil {
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -21,6 +22,6 @@ object UriUtil {
                 return ContentUris.withAppendedId(uri, cursor.getLong(0))
             }
         }
-        return Uri.EMPTY
+        return Uri.fromFile(File(path))
     }
 }

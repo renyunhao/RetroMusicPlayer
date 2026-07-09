@@ -37,6 +37,7 @@ import code.name.monkey.retromusic.model.ArtworkInfo
 import code.name.monkey.retromusic.model.Song
 import code.name.monkey.retromusic.util.ImageUtil
 import code.name.monkey.retromusic.util.MusicUtil
+import java.io.File
 import code.name.monkey.retromusic.util.RetroColorUtil.generatePalette
 import code.name.monkey.retromusic.util.RetroColorUtil.getColor
 import code.name.monkey.retromusic.util.logD
@@ -190,7 +191,7 @@ class AlbumTagEditorActivity : AbsTagEditorActivity<ActivityAlbumTagEditorBindin
     }
 
     override fun getSongUris(): List<Uri> = repository.albumById(id).songs.map {
-        MusicUtil.getSongFileUri(it.id)
+        Uri.fromFile(File(it.data))
     }
 
     override fun setColors(color: Int) {

@@ -15,6 +15,7 @@ package code.name.monkey.retromusic.auto
 
 import android.content.Context
 import android.content.res.Resources
+import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat
 import code.name.monkey.retromusic.R
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
@@ -68,7 +69,7 @@ class AutoMusicProvider(
                         .path(mediaId, album.id)
                         .title(album.title)
                         .subTitle(album.albumArtist ?: album.artistName)
-                        .icon(MusicUtil.getMediaStoreAlbumCoverUri(album.id))
+                        .icon(Uri.fromFile(java.io.File(album.safeGetFirstSong().data)))
                         .asPlayable()
                         .build()
                 )
@@ -111,7 +112,7 @@ class AutoMusicProvider(
                                     .path(mediaId, song.id)
                                     .title(song.title)
                                     .subTitle(song.artistName)
-                                    .icon(MusicUtil.getMediaStoreAlbumCoverUri(song.albumId))
+                                    .icon(Uri.fromFile(java.io.File(song.data)))
                                     .build()
                             )
                         }
@@ -277,7 +278,7 @@ class AutoMusicProvider(
             .path(mediaId, song.id)
             .title(song.title)
             .subTitle(song.artistName)
-            .icon(MusicUtil.getMediaStoreAlbumCoverUri(song.albumId))
+            .icon(Uri.fromFile(java.io.File(song.data)))
             .build()
     }
 }

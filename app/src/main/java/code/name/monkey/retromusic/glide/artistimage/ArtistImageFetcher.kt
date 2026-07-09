@@ -1,11 +1,11 @@
 package code.name.monkey.retromusic.glide.artistimage
 
 import android.content.Context
-import code.name.monkey.retromusic.util.MusicUtil
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.data.DataFetcher
-import java.io.FileNotFoundException
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStream
 
 
@@ -27,19 +27,13 @@ class ArtistImageFetcher(
     }
 
     private fun getFallbackAlbumImage(): InputStream? {
-        model.artist.safeGetFirstAlbum().id.let { id->
-            return if (id != -1L) {
-                val imageUri = MusicUtil.getMediaStoreAlbumCoverUri(model.artist.safeGetFirstAlbum().id)
-                try {
-                    context.contentResolver.openInputStream(imageUri)
-                } catch (e: FileNotFoundException){
-                    null
-                } catch (e: UnsupportedOperationException) {
-                    null
-                }
-            } else {
-                null
-            }
+        val firstSong = model.artist.safeGetFirstAlbum().safeGetFirstSong()
+        if (firstSong.id == -1L) return null
+        return try {
+            val file = File(firstSong.data)
+            if (file.exists()) FileInputStream(file) else null
+        } catch (e: Exception) {
+            null
         }
     }
 

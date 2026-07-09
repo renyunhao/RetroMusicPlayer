@@ -113,7 +113,7 @@
     <string name="cascading">层叠</string>
     <string name="changelog">变更日志</string>
     <string name="changelog_summary">看看新变化</string>
-    <string name="choose_image">选择图片</string>
+
     <string name="choose_restore_title">选择要还原的内容</string>
     <string name="circle">唱盘</string>
     <string name="circular">圆形</string>
@@ -169,7 +169,7 @@
     <string name="equalizer">均衡器</string>
     <string name="error_create_backup">无法创建备份</string>
     <string name="error_delete_backup">无法删除备份</string>
-    <string name="error_empty_name">您的名字不能为空！</string>
+
     <string name="error_load_failed">加载失败</string>
     <string name="error_share_file">无法分享文件</string>
     <string name="expanded">已展开</string>
@@ -347,7 +347,7 @@
     <string name="pref_summary_expand_now_playing_panel">点击通知将显示正在播放页，而不是主页</string>
     <string name="pref_summary_extra_controls">给播放栏添加额外控件</string>
     <string name="pref_summary_extra_song_info">显示额外的歌曲信息，例如文件格式、比特率和频率</string>
-    <string name="pref_summary_home_banner">是否显示主页横幅</string>
+
     <string name="pref_summary_ignore_media_store_artwork">可以提高封面质量，但加载时间较慢。请仅在图片分辨率过低时开启。</string>
     <string name="pref_summary_library_categories">配置媒体库的可见性和顺序</string>
     <string name="pref_summary_lock_screen">使用 Retro Music 的自定义锁屏</string>
@@ -391,7 +391,7 @@
     <string name="pref_title_general_theme">应用主题</string>
     <string name="pref_title_home_album_grid_style">专辑网格</string>
     <string name="pref_title_home_artist_grid_style">主页艺术家网格</string>
-    <string name="pref_title_home_banner">主页横幅</string>
+
     <string name="pref_title_ignore_media_store_artwork">忽略媒体存储封面</string>
     <string name="pref_title_last_added_interval">最近播放列表时间间隔</string>
     <string name="pref_title_lock_screen">全屏控件</string>
@@ -427,7 +427,7 @@
     <string name="remove_action">移除</string>
     <string name="remove_cover">移除封面</string>
     <string name="remove_from_blacklist">从黑名单中移除</string>
-    <string name="remove_image">移除图像</string>
+
     <string name="remove_song_from_playlist_title">从播放列表中删除歌曲</string>
     <string name="remove_song_x_from_playlist"><![CDATA[是否从播放列表中删除歌曲 <b>%1$s</b>？]]></string>
     <string name="remove_songs_from_playlist_title">从播放列表中删除歌曲</string>
@@ -539,8 +539,7 @@
     <string name="update_image">更新图片</string>
     <string name="updating">正在更新…</string>
     <string name="user_images_description">用户图片</string>
-    <string name="user_name">用户名</string>
-    <string name="username">用户名</string>
+
     <string name="version">版本</string>
     <string name="vertical_flip">垂直翻转</string>
     <string name="view_on_telegram">在 Telegram 上查看</string>

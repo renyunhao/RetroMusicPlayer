@@ -102,8 +102,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.palette.ktx)
 
-
-
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)

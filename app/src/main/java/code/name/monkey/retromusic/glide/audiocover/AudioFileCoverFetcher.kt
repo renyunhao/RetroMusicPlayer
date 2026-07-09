@@ -27,6 +27,8 @@ class AudioFileCoverFetcher(private val model: AudioFileCover) : DataFetcher<Inp
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
         val retriever = MediaMetadataRetriever()
         try {
+            if (model.filePath == "")
+                callback.onDataReady(null)
             retriever.setDataSource(model.filePath)
             val picture = retriever.embeddedPicture
             stream = if (picture != null) {
@@ -35,7 +37,7 @@ class AudioFileCoverFetcher(private val model: AudioFileCover) : DataFetcher<Inp
                 AudioFileCoverUtils.fallback(model.filePath)
             }
             callback.onDataReady(stream)
-        } catch (e: FileNotFoundException) {
+        } catch (e: Exception) {
             callback.onLoadFailed(e)
         } finally {
             retriever.release()

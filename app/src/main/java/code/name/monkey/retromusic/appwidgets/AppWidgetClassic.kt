@@ -29,6 +29,7 @@ import code.name.monkey.retromusic.activities.MainActivity
 import code.name.monkey.retromusic.appwidgets.base.BaseAppWidget
 import code.name.monkey.retromusic.extensions.getTintedDrawable
 import code.name.monkey.retromusic.glide.RetroGlideExtension
+import code.name.monkey.retromusic.model.Song
 import code.name.monkey.retromusic.service.MusicService
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_DELETE_SONG
 import code.name.monkey.retromusic.service.MusicService.Companion.ACTION_PREVIOUS
@@ -87,6 +88,9 @@ class AppWidgetClassic : BaseAppWidget() {
 
         val isPlaying = service.isPlaying
         val song = service.currentSong
+
+        if (song == Song.emptySong)
+            return;
 
         if (song.title.isEmpty() && song.artistName.isEmpty()) {
             appWidgetView.setViewVisibility(R.id.media_titles, View.INVISIBLE)

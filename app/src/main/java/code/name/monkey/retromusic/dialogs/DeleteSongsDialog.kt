@@ -17,6 +17,7 @@ package code.name.monkey.retromusic.dialogs
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.activity.result.IntentSenderRequest
@@ -27,6 +28,7 @@ import androidx.fragment.app.DialogFragment
 import code.name.monkey.appthemehelper.util.VersionUtils
 import code.name.monkey.retromusic.EXTRA_SONG
 import code.name.monkey.retromusic.R
+import java.io.File
 import code.name.monkey.retromusic.activities.saf.SAFGuideActivity
 import code.name.monkey.retromusic.extensions.extraNotNull
 import code.name.monkey.retromusic.extensions.materialDialog
@@ -102,7 +104,7 @@ class DeleteSongsDialog : DialogFragment() {
                 }
             val pendingIntent =
                 MediaStore.createDeleteRequest(requireActivity().contentResolver, songs.map {
-                    MusicUtil.getSongFileUri(it.id)
+                    Uri.fromFile(File(it.data))
                 })
             deleteResultLauncher.launch(
                 IntentSenderRequest.Builder(pendingIntent.intentSender).build()

@@ -1,15 +1,12 @@
 package code.name.monkey.retromusic.glide
 
-import android.content.Context
+
 import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
-import code.name.monkey.appthemehelper.util.TintHelper
 import code.name.monkey.retromusic.App.Companion.getContext
-import code.name.monkey.retromusic.Constants.USER_BANNER
-import code.name.monkey.retromusic.Constants.USER_PROFILE
+
 import code.name.monkey.retromusic.R
-import code.name.monkey.retromusic.extensions.accentColor
 import code.name.monkey.retromusic.glide.artistimage.ArtistImage
 import code.name.monkey.retromusic.glide.audiocover.AudioFileCover
 import code.name.monkey.retromusic.glide.palette.BitmapPaletteWrapper
@@ -18,9 +15,10 @@ import code.name.monkey.retromusic.model.Song
 import code.name.monkey.retromusic.util.ArtistSignatureUtil
 import code.name.monkey.retromusic.util.CustomArtistImageUtil.Companion.getFile
 import code.name.monkey.retromusic.util.CustomArtistImageUtil.Companion.getInstance
-import code.name.monkey.retromusic.util.MusicUtil.getMediaStoreAlbumCoverUri
+
 import code.name.monkey.retromusic.util.PreferenceUtil
 import com.bumptech.glide.GenericTransitionOptions
+
 import com.bumptech.glide.Priority
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.RequestManager
@@ -45,8 +43,7 @@ object RetroGlideExtension {
         get() = R.drawable.default_audio_art
     private val DEFAULT_ALBUM_IMAGE
         get() = R.drawable.default_album_art
-    private val DEFAULT_ERROR_IMAGE_BANNER
-        get() = R.drawable.material_design_default
+
 
     private val DEFAULT_DISK_CACHE_STRATEGY_ARTIST = DiskCacheStrategy.RESOURCE
     private val DEFAULT_DISK_CACHE_STRATEGY = DiskCacheStrategy.NONE
@@ -58,11 +55,7 @@ object RetroGlideExtension {
     }
 
     private fun getSongModel(song: Song, ignoreMediaStore: Boolean): Any {
-        return if (ignoreMediaStore) {
-            AudioFileCover(song.data)
-        } else {
-            getMediaStoreAlbumCoverUri(song.albumId)
-        }
+        return AudioFileCover(song.data)
     }
 
     fun getSongModel(song: Song): Any {
@@ -133,23 +126,6 @@ object RetroGlideExtension {
             .signature(createSignature(song))
     }
 
-    fun <T> RequestBuilder<T>.userProfileOptions(
-        file: File,
-        context: Context
-    ): RequestBuilder<T> {
-        return diskCacheStrategy(DEFAULT_DISK_CACHE_STRATEGY)
-            .error(getErrorUserProfile(context))
-            .signature(createSignature(file))
-    }
-
-    fun <T> RequestBuilder<T>.profileBannerOptions(
-        file: File
-    ): RequestBuilder<T> {
-        return diskCacheStrategy(DEFAULT_DISK_CACHE_STRATEGY)
-            .placeholder(DEFAULT_ERROR_IMAGE_BANNER)
-            .error(DEFAULT_ERROR_IMAGE_BANNER)
-            .signature(createSignature(file))
-    }
 
     fun <T> RequestBuilder<T>.playlistOptions(): RequestBuilder<T> {
         return diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
@@ -170,23 +146,6 @@ object RetroGlideExtension {
             .getArtistSignature(artist.name)
     }
 
-    fun getUserModel(): File {
-        val dir = getContext().filesDir
-        return File(dir, USER_PROFILE)
-    }
-
-    fun getBannerModel(): File {
-        val dir = getContext().filesDir
-        return File(dir, USER_BANNER)
-    }
-
-    private fun getErrorUserProfile(context: Context): Drawable {
-        return TintHelper.createTintedDrawable(
-            context,
-            R.drawable.ic_account,
-            context.accentColor()
-        )
-    }
 
     fun <TranscodeType> getDefaultTransition(): GenericTransitionOptions<TranscodeType> {
         return GenericTransitionOptions<TranscodeType>().transition(DEFAULT_ANIMATION)

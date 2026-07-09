@@ -115,10 +115,8 @@ object MusicUtil : KoinComponent {
     }
 
     fun deleteAlbumArt(context: Context, albumId: Long) {
-        val contentResolver = context.contentResolver
-        val localUri = "content://media/external/audio/albumart".toUri()
-        contentResolver.delete(ContentUris.withAppendedId(localUri, albumId), null, null)
-        contentResolver.notifyChange(localUri, null)
+        val coverFile = File(createAlbumArtDir(context), albumId.toString())
+        if (coverFile.exists()) coverFile.delete()
     }
 
     fun getArtistInfoString(
@@ -282,13 +280,14 @@ object MusicUtil : KoinComponent {
     }
 
     fun getSongFileUri(songId: Long): Uri {
-        return ContentUris.withAppendedId(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            songId
-        )
+        val repo = org.koin.core.context.GlobalContext.get().get<SongRepository>()
+        return Uri.fromFile(File(repo.song(songId).data))
     }
 
     fun getSongFilePath(context: Context, uri: Uri): String {
+        if (uri.scheme == "file") {
+            return uri.path ?: ""
+        }
         val projection = arrayOf(Constants.DATA)
         context.contentResolver.query(uri, projection, null, null, null)?.use {
             if (it.moveToFirst()) {
@@ -327,20 +326,12 @@ object MusicUtil : KoinComponent {
         albumId: Long,
         path: String?
     ) {
-        val contentResolver = context.contentResolver
-        val artworkUri = "content://media/external/audio/albumart".toUri()
-        contentResolver.delete(ContentUris.withAppendedId(artworkUri, albumId), null, null)
-
-        val values = ContentValues().apply {
-            put("album_id", albumId)
-            put("_data", path)
-        }
-
+        if (path == null) return
+        val coverFile = File(createAlbumArtDir(context), albumId.toString())
         try {
-            contentResolver.insert(artworkUri, values)
-            contentResolver.notifyChange(artworkUri, null)
-        } catch (e: IllegalArgumentException) {
-           Log.e("MusicUtil", "Failed to insert album art", e)
+            File(path).copyTo(coverFile, overwrite = true)
+        } catch (e: Exception) {
+            Log.e("MusicUtil", "Failed to save album art", e)
         }
     }
 
@@ -387,80 +378,25 @@ object MusicUtil : KoinComponent {
         safUris: List<Uri>?,
         callback: Runnable?,
     ) {
-        val songRepository: SongRepository = get()
-        val projection = arrayOf(
-            BaseColumns._ID, Constants.DATA
-        )
-        // Split the query into multiple batches, and merge the resulting cursors
-        var batchStart: Int
-        var batchEnd = 0
-        val batchSize =
-            1000000 / 10 // 10^6 being the SQLite limite on the query lenth in bytes, 10 being the max number of digits in an int, used to store the track ID
-        val songCount = songs.size
-
-        while (batchEnd < songCount) {
-            batchStart = batchEnd
-
-            val selection = StringBuilder()
-            selection.append(BaseColumns._ID + " IN (")
-
-            var i = 0
-            while (i < batchSize - 1 && batchEnd < songCount - 1) {
-                selection.append(songs[batchEnd].id)
-                selection.append(",")
-                i++
-                batchEnd++
-            }
-            // The last element of a batch
-            // The last element of a batch
-            selection.append(songs[batchEnd].id)
-            batchEnd++
-            selection.append(")")
-
+        val songRepository = org.koin.core.context.GlobalContext.get().get<SongRepository>()
+        var deletedCount = 0
+        for (song in songs) {
             try {
-                val cursor = activity.contentResolver.query(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection.toString(),
-                    null, null
-                )
-                if (cursor != null) {
-                    // Step 1: Remove selected tracks from the current playlist, as well
-                    // as from the album art cache
-                    cursor.moveToFirst()
-                    while (!cursor.isAfterLast) {
-                        val id = cursor.getLong(BaseColumns._ID)
-                        val song: Song = songRepository.song(id)
-                        withContext(Dispatchers.Main) {
-                            removeFromQueue(song)
-                        }
-                        cursor.moveToNext()
-                    }
-
-                    // Step 2: Remove selected tracks from the database
-                    activity.contentResolver.delete(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        selection.toString(), null
-                    )
-                    // Step 3: Remove files from card
-                    cursor.moveToFirst()
-                    var index = batchStart
-                    while (!cursor.isAfterLast) {
-                        val name = cursor.getString(1)
-                        val safUri =
-                            if (safUris == null || safUris.size <= index) null else safUris[index]
-                        SAFUtil.delete(activity, name, safUri)
-                        index++
-                        cursor.moveToNext()
-                    }
-                    cursor.close()
+                val file = File(song.data)
+                if (file.delete()) {
+                    deletedCount++
                 }
-            } catch (ignored: SecurityException) {
-
+            } catch (ex: Exception) {
+                Log.e("MusicUtils", "Failed to delete file ${song.data}")
             }
-            activity.contentResolver.notifyChange("content://media".toUri(), null)
-            activity.runOnUiThread {
-                activity.showToast(activity.getString(R.string.deleted_x_songs, songCount))
-                callback?.run()
+            withContext(Dispatchers.Main) {
+                removeFromQueue(song)
             }
+        }
+        songRepository.refresh()
+        activity.runOnUiThread {
+            activity.showToast(activity.getString(R.string.deleted_x_songs, deletedCount))
+            callback?.run()
         }
     }
 
@@ -469,75 +405,19 @@ object MusicUtil : KoinComponent {
             removeFromQueue(songs)
         }
         var deletedCount = 0
-        try {
-            if (VersionUtils.hasR()) {
-                withContext(Dispatchers.Main) {
-                    context.showToast(R.string.deleted_x_songs_hint)
+        for (song in songs) {
+            try {
+                val file = File(song.data)
+                if (file.delete()) {
+                    deletedCount++
                 }
-            } else if (VersionUtils.hasQ()) {
-                for (song in songs) {
-                    val uri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
-                        song.id
-                    )
-                    try {
-                        val deleted = context.contentResolver.delete(uri, null, null)
-                        if (deleted > 0) {
-                            deletedCount++
-                        }
-                    } catch (ex: SecurityException) {
-                        Log.e("MusicUtils", "No access to delete ${song.title}")
-                    }
-                }
-                withContext(Dispatchers.Main) {
-                    context.showToast(context.getString(R.string.deleted_x_songs, deletedCount))
-                }
-            } else {
-                val projection = arrayOf(BaseColumns._ID, Constants.DATA)
-                val selection = StringBuilder()
-                selection.append(BaseColumns._ID + " IN (")
-                for (i in songs.indices) {
-                    selection.append(songs[i].id)
-                    if (i < songs.size - 1) {
-                        selection.append(",")
-                    }
-                }
-                selection.append(")")
-                val cursor: Cursor? = context.contentResolver.query(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection.toString(),
-                    null, null
-                )
-                if (cursor != null) {
-                    cursor.moveToFirst()
-                    while (!cursor.isAfterLast) {
-                        val id: Int = cursor.getInt(0)
-                        val name: String = cursor.getString(1)
-                        try {
-                            val f = File(name)
-                            if (f.delete()) {
-                                context.contentResolver.delete(
-                                    ContentUris.withAppendedId(
-                                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                        id.toLong()
-                                    ), null, null
-                                )
-                                deletedCount++
-                            } else {
-                                Log.e("MusicUtils", "Failed to delete file $name")
-                            }
-                        } catch (ex: SecurityException) {
-                            Log.e("MusicUtils", "SecurityException deleting file $name")
-                        }
-                        cursor.moveToNext()
-                    }
-                    cursor.close()
-                }
-                withContext(Dispatchers.Main) {
-                    context.showToast(context.getString(R.string.deleted_x_songs, deletedCount))
-                }
+            } catch (ex: Exception) {
+                Log.e("MusicUtils", "Failed to delete file ${song.data}")
             }
-        } catch (ex: SecurityException) {
-            Log.e("MusicUtils", "SecurityException deleting file ${ex.message}")
+        }
+        org.koin.core.context.GlobalContext.get().get<SongRepository>().refresh()
+        withContext(Dispatchers.Main) {
+            context.showToast(context.getString(R.string.deleted_x_songs, deletedCount))
         }
     }
 
