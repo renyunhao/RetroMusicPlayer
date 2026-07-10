@@ -80,6 +80,7 @@ public class MediaNotificationProcessor {
   private int backgroundColor;
   private int secondaryTextColor;
   private int primaryTextColor;
+
   private int actionBarColor;
   private Drawable drawable;
   private final Context context;
@@ -478,6 +479,7 @@ public class MediaNotificationProcessor {
     errorColors.backgroundColor = -15724528;
     errorColors.primaryTextColor = -6974059;
     errorColors.secondaryTextColor = -8684677;
+
     errorColors.actionBarColor = -6974059;
     return errorColors;
   }

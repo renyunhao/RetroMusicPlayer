@@ -52,9 +52,8 @@ class AppWidgetClassic : BaseAppWidget() {
     private var target: Target<Bitmap>? = null
     private var lyrics: Lyrics? = null
     private var currentSongId: Long = -1
-    private var lastBgColor: Int = 0
-    private var lastPrimaryTextColor: Int = 0
-    private var lastSecondaryTextColor: Int = 0
+
+
 
     override fun defaultAppWidget(context: Context, appWidgetIds: IntArray) {
         val appWidgetView = RemoteViews(context.packageName, R.layout.app_widget_classic)
@@ -64,7 +63,7 @@ class AppWidgetClassic : BaseAppWidget() {
         appWidgetView.setTextViewText(R.id.lyrics_line2, "")
         appWidgetView.setImageViewResource(R.id.image, R.drawable.default_audio_art)
 
-        val btnColor = MaterialValueHelper.getSecondaryTextColor(context, true)
+        val btnColor = MaterialValueHelper.getPrimaryTextColor(context, false)
         appWidgetView.setImageViewBitmap(
             R.id.button_next,
             context.getTintedDrawable(R.drawable.ic_skip_next, btnColor).toBitmap()
@@ -97,7 +96,6 @@ class AppWidgetClassic : BaseAppWidget() {
     override fun performUpdate(service: MusicService, appWidgetIds: IntArray?) {
         val appWidgetView = RemoteViews(service.packageName, R.layout.app_widget_classic)
 
-        val isPlaying = service.isPlaying
         val song = service.currentSong
 
         if (song == Song.emptySong)
@@ -162,15 +160,6 @@ class AppWidgetClassic : BaseAppWidget() {
             MediaNotificationProcessor.errorColor(context)
         }
 
-        lastBgColor = processor.backgroundColor
-        lastPrimaryTextColor = processor.primaryTextColor
-        lastSecondaryTextColor = processor.secondaryTextColor
-
-        appWidgetView.setInt(R.id.content, "setBackgroundColor", lastBgColor)
-        appWidgetView.setTextColor(R.id.title, lastPrimaryTextColor)
-        appWidgetView.setTextColor(R.id.lyrics_line1, lastPrimaryTextColor)
-        appWidgetView.setTextColor(R.id.lyrics_line2, lastSecondaryTextColor)
-
         if (bitmap != null) {
             val image = getAlbumArtDrawable(service, bitmap)
             val roundedBitmap = createRoundedBitmap(
@@ -181,32 +170,33 @@ class AppWidgetClassic : BaseAppWidget() {
             appWidgetView.setImageViewResource(R.id.image, R.drawable.default_audio_art)
         }
 
+        val btnColor = MaterialValueHelper.getPrimaryTextColor(context, false)
         val playPauseRes =
             if (service.isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow_white_32dp
 
         appWidgetView.setImageViewBitmap(
             R.id.button_toggle_play_pause,
-            service.getTintedDrawable(playPauseRes, lastPrimaryTextColor).toBitmap()
+            context.getTintedDrawable(playPauseRes, btnColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_next,
-            service.getTintedDrawable(R.drawable.ic_skip_next, lastPrimaryTextColor).toBitmap()
+            context.getTintedDrawable(R.drawable.ic_skip_next, btnColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_prev,
-            service.getTintedDrawable(R.drawable.ic_skip_previous, lastPrimaryTextColor).toBitmap()
+            context.getTintedDrawable(R.drawable.ic_skip_previous, btnColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_delete,
-            service.getTintedDrawable(R.drawable.ic_delete, lastSecondaryTextColor).toBitmap()
+            context.getTintedDrawable(R.drawable.ic_delete, btnColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_repeat,
-            service.getTintedDrawable(getRepeatDrawable(service), lastSecondaryTextColor).toBitmap()
+            context.getTintedDrawable(getRepeatDrawable(service), btnColor).toBitmap()
         )
         appWidgetView.setImageViewBitmap(
             R.id.button_shuffle,
-            service.getTintedDrawable(getShuffleDrawable(service), lastSecondaryTextColor).toBitmap()
+            context.getTintedDrawable(getShuffleDrawable(service), btnColor).toBitmap()
         )
 
         pushUpdate(context, appWidgetIds, appWidgetView)
@@ -242,10 +232,6 @@ class AppWidgetClassic : BaseAppWidget() {
             appWidgetView.setTextViewText(R.id.lyrics_line2, "")
         }
 
-        if (lastBgColor != 0) {
-            appWidgetView.setTextColor(R.id.lyrics_line1, lastPrimaryTextColor)
-            appWidgetView.setTextColor(R.id.lyrics_line2, lastSecondaryTextColor)
-        }
 
         val appWidgetManager = AppWidgetManager.getInstance(service)
         val ids = appWidgetManager.getAppWidgetIds(

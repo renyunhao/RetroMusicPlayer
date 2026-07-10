@@ -294,6 +294,69 @@ public class NotificationColorUtil {
     return findContrastColorAgainstDark(color, Color.BLACK, true /* fg */, 12);
   }
 
+  public static int calculateHarmoniousContrast(int inputColor) {
+    double[] lab = rgbToOklab(Color.red(inputColor), Color.green(inputColor), Color.blue(inputColor));
+    double L = lab[0], a = lab[1], b = lab[2];
+
+    double targetL = L > 0.6 ? 0.15 : 0.95;
+    double targetA = a * -0.5;
+    double targetB = b * -0.5;
+
+    int[] rgb = oklabToRgb(targetL, targetA, targetB);
+    return Color.rgb(
+        Math.max(0, Math.min(255, rgb[0])),
+        Math.max(0, Math.min(255, rgb[1])),
+        Math.max(0, Math.min(255, rgb[2])));
+  }
+
+  private static double srgbToLinear(double c) {
+    return c >= 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92;
+  }
+
+  private static double linearToSrgb(double c) {
+    return c >= 0.0031308 ? 1.055 * Math.pow(c, 1.0 / 2.4) - 0.055 : 12.92 * c;
+  }
+
+  private static double[] rgbToOklab(int r, int g, int b) {
+    double lr = srgbToLinear(r / 255.0);
+    double lg = srgbToLinear(g / 255.0);
+    double lb = srgbToLinear(b / 255.0);
+
+    double l_ = 0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb;
+    double m_ = 0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb;
+    double s_ = 0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb;
+
+    double l_c = Math.cbrt(l_);
+    double m_c = Math.cbrt(m_);
+    double s_c = Math.cbrt(s_);
+
+    return new double[]{
+        0.2104542553 * l_c + 0.7936177850 * m_c - 0.0040720468 * s_c,
+        1.9779984951 * l_c - 2.4285922050 * m_c + 0.4505937099 * s_c,
+        0.0259040371 * l_c + 0.7827717662 * m_c - 0.8086757660 * s_c
+    };
+  }
+
+  private static int[] oklabToRgb(double L, double a, double b) {
+    double l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+    double m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+    double s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+    l_ = l_ * l_ * l_;
+    m_ = m_ * m_ * m_;
+    s_ = s_ * s_ * s_;
+
+    double r = +4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_;
+    double g = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
+    double bl = -0.0041960863 * l_ - 0.7034186147 * m_ + 1.7076147010 * s_;
+
+    return new int[]{
+        (int) Math.round(linearToSrgb(Math.max(0, Math.min(1, r))) * 255),
+        (int) Math.round(linearToSrgb(Math.max(0, Math.min(1, g))) * 255),
+        (int) Math.round(linearToSrgb(Math.max(0, Math.min(1, bl))) * 255)
+    };
+  }
+
   /**
    * Finds a large text color with sufficient contrast over bg that has the same or darker hue as
    * the original color, depending on the value of {@code isBgDarker}.
