@@ -41,6 +41,8 @@ import code.name.monkey.retromusic.interfaces.IArtistClickListener
 import code.name.monkey.retromusic.model.Album
 import code.name.monkey.retromusic.model.Artist
 import code.name.monkey.retromusic.util.RetroUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialSharedAxis
@@ -91,6 +93,7 @@ class DetailListFragment : AbsMainActivityFragment(R.layout.fragment_playlist_de
             }
             LAST_ADDED_PLAYLIST -> lastAddedSongs()
             TOP_PLAYED_PLAYLIST -> topPlayed()
+            FOLDER_PLAYLIST -> loadFolderSongs()
         }
 
         binding.appBarLayout.statusBarForeground =
@@ -164,6 +167,26 @@ class DetailListFragment : AbsMainActivityFragment(R.layout.fragment_playlist_de
         libraryViewModel.favorites().observe(viewLifecycleOwner) { songEntities ->
             val songs = songEntities.map { songEntity -> songEntity.toSong() }
             songAdapter.swapDataSet(songs)
+        }
+    }
+
+    private fun loadFolderSongs() {
+        val folderPath = arguments?.getString(EXTRA_FOLDER_PATH) ?: return
+        val folderName = folderPath.substringAfterLast("/")
+        binding.toolbar.title = folderName
+        val songAdapter = ShuffleButtonSongAdapter(
+            requireActivity(),
+            mutableListOf(),
+            R.layout.item_list
+        )
+        binding.recyclerView.apply {
+            adapter = songAdapter
+            layoutManager = linearLayoutManager()
+            scheduleLayoutAnimation()
+        }
+        libraryViewModel.getFolderSongs(folderPath).observe(viewLifecycleOwner) { songs ->
+            songAdapter.swapDataSet(songs)
+            binding.empty.isVisible = songs.isEmpty()
         }
     }
 

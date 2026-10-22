@@ -1,16 +1,28 @@
 package code.name.monkey.retromusic.repository
 
 import android.content.Context
-
+import code.name.monkey.retromusic.db.ScannedSongDao
+import code.name.monkey.retromusic.db.ScannedSongEntity
+import code.name.monkey.retromusic.db.toSong
 import code.name.monkey.retromusic.helper.SortOrder.SongSortOrder
 import code.name.monkey.retromusic.model.Song
 import code.name.monkey.retromusic.providers.BlacklistStore
 import code.name.monkey.retromusic.util.PreferenceUtil
-
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 import java.io.File
 import java.text.Collator
+
+data class ScanProgress(
+    val scannedFiles: Int,
+    val totalFiles: Int,
+    val currentPath: String,
+    val isComplete: Boolean = false
+)
 
 interface SongRepository {
 
@@ -23,9 +35,16 @@ interface SongRepository {
     fun songsByFilePath(filePath: String, ignoreBlacklist: Boolean = false): List<Song>
 
     fun refresh()
+
+    suspend fun refreshWithProgress(): Flow<ScanProgress>
+
+    fun scanProgress(): Flow<ScanProgress>
 }
 
-class RealSongRepository(private val context: Context) : SongRepository {
+class RealSongRepository(
+    private val context: Context,
+    private val scannedSongDao: ScannedSongDao
+) : SongRepository {
 
     @Volatile
     private var cachedSongs: List<Song> = emptyList()
@@ -33,37 +52,27 @@ class RealSongRepository(private val context: Context) : SongRepository {
     @Volatile
     private var hasScanned = false
 
+    private val _scanProgress = MutableStateFlow(ScanProgress(0, 0, ""))
+    override fun scanProgress() = _scanProgress.asStateFlow()
+
     private val AUDIO_EXTENSIONS = setOf(
         "mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "opus", "aiff", "ape"
     )
 
     private fun ensureScanned() {
         if (!hasScanned) {
-            refresh()
+            loadFromDatabase()
         }
     }
 
-    override fun refresh() {
-        val blacklist = BlacklistStore.getInstance(context).paths
-        val scanDirs = PreferenceUtil.scanDirectories
-        if (scanDirs.isEmpty()) {
-            cachedSongs = emptyList()
-            hasScanned = true
-            return
+    private fun loadFromDatabase() {
+        runBlocking {
+            val dbSongs = scannedSongDao.getAllSongs()
+            if (dbSongs.isNotEmpty()) {
+                cachedSongs = dbSongs.map { it.toSong() }
+                hasScanned = true
+            }
         }
-        val firstDir = File(scanDirs.first())
-        if (!firstDir.exists() || !firstDir.canRead()) {
-            cachedSongs = emptyList()
-            hasScanned = true
-            return
-        }
-        val songs = mutableListOf<Song>()
-        for (dirPath in scanDirs) {
-            val dir = File(dirPath)
-            songs.addAll(scanDirectory(dir, blacklist))
-        }
-        cachedSongs = songs
-        hasScanned = true
     }
 
     override fun songs(): List<Song> {
@@ -91,6 +100,122 @@ class RealSongRepository(private val context: Context) : SongRepository {
         val blacklist = BlacklistStore.getInstance(context).paths
         return cachedSongs.filter {
             it.data == filePath && blacklist.none { path -> it.data.startsWith(path) }
+        }
+    }
+
+    override fun refresh() {
+        val loaded = runBlocking {
+            val dbCount = scannedSongDao.count()
+            if (dbCount > 0) {
+                val dbSongs = scannedSongDao.getAllSongs()
+                if (dbSongs.isNotEmpty()) {
+                    cachedSongs = dbSongs.map { it.toSong() }
+                    hasScanned = true
+                    return@runBlocking true
+                }
+            }
+            performScan()
+            return@runBlocking false
+        }
+        if (loaded) return
+    }
+
+    override suspend fun refreshWithProgress(): Flow<ScanProgress> {
+        _scanProgress.value = ScanProgress(0, 0, "")
+        performScanWithProgress()
+        return _scanProgress.asStateFlow()
+    }
+
+    private suspend fun performScan() {
+        val blacklist = BlacklistStore.getInstance(context).paths
+        val scanDirs = PreferenceUtil.scanDirectories
+        if (scanDirs.isEmpty()) {
+            cachedSongs = emptyList()
+            hasScanned = true
+            scannedSongDao.deleteAll()
+            return
+        }
+        val firstDir = File(scanDirs.first())
+        if (!firstDir.exists() || !firstDir.canRead()) {
+            cachedSongs = emptyList()
+            hasScanned = true
+            scannedSongDao.deleteAll()
+            return
+        }
+        val songs = mutableListOf<Song>()
+        val entities = mutableListOf<ScannedSongEntity>()
+        for (dirPath in scanDirs) {
+            val dir = File(dirPath)
+            val result = scanDirectory(dir, blacklist)
+            songs.addAll(result.first)
+            entities.addAll(result.second)
+        }
+        scannedSongDao.deleteAll()
+        scannedSongDao.insertAll(entities)
+        cachedSongs = songs
+        hasScanned = true
+    }
+
+    private suspend fun performScanWithProgress() {
+        val blacklist = BlacklistStore.getInstance(context).paths
+        val scanDirs = PreferenceUtil.scanDirectories
+        if (scanDirs.isEmpty()) {
+            cachedSongs = emptyList()
+            hasScanned = true
+            scannedSongDao.deleteAll()
+            _scanProgress.value = ScanProgress(0, 0, "", isComplete = true)
+            return
+        }
+        val firstDir = File(scanDirs.first())
+        if (!firstDir.exists() || !firstDir.canRead()) {
+            cachedSongs = emptyList()
+            hasScanned = true
+            scannedSongDao.deleteAll()
+            _scanProgress.value = ScanProgress(0, 0, "", isComplete = true)
+            return
+        }
+
+        val allAudioFiles = mutableListOf<File>()
+        for (dirPath in scanDirs) {
+            val dir = File(dirPath)
+            if (dir.exists() && dir.isDirectory) {
+                collectAudioFiles(dir, blacklist, allAudioFiles)
+            }
+        }
+
+        val totalFiles = allAudioFiles.size
+        _scanProgress.value = ScanProgress(0, totalFiles, "")
+
+        val songs = mutableListOf<Song>()
+        val entities = mutableListOf<ScannedSongEntity>()
+
+        allAudioFiles.forEachIndexed { index, file ->
+            val song = readSongFromFile(file) ?: return@forEachIndexed
+            if (song.duration < PreferenceUtil.filterLength * 1000L) return@forEachIndexed
+            songs.add(song)
+            entities.add(song.toScannedSongEntity())
+            _scanProgress.value = ScanProgress(
+                scannedFiles = index + 1,
+                totalFiles = totalFiles,
+                currentPath = file.absolutePath,
+                isComplete = index + 1 == totalFiles
+            )
+        }
+
+        scannedSongDao.deleteAll()
+        scannedSongDao.insertAll(entities)
+        cachedSongs = songs
+        hasScanned = true
+        _scanProgress.value = ScanProgress(totalFiles, totalFiles, "", isComplete = true)
+    }
+
+    private fun collectAudioFiles(dir: File, blacklist: List<String>, result: MutableList<File>) {
+        dir.walkTopDown().forEach { file ->
+            if (!file.isFile) return@forEach
+            val path = file.absolutePath
+            if (blacklist.any { path.startsWith(it) }) return@forEach
+            if (file.extension.lowercase() !in AUDIO_EXTENSIONS) return@forEach
+            result.add(file)
         }
     }
 
@@ -131,9 +256,10 @@ class RealSongRepository(private val context: Context) : SongRepository {
         }
     }
 
-    private fun scanDirectory(dir: File, blacklist: List<String>): List<Song> {
+    private fun scanDirectory(dir: File, blacklist: List<String>): Pair<List<Song>, List<ScannedSongEntity>> {
         val songs = mutableListOf<Song>()
-        if (!dir.exists() || !dir.isDirectory) return songs
+        val entities = mutableListOf<ScannedSongEntity>()
+        if (!dir.exists() || !dir.isDirectory) return Pair(songs, entities)
 
         dir.walkTopDown().forEach { file ->
             if (!file.isFile) return@forEach
@@ -143,8 +269,9 @@ class RealSongRepository(private val context: Context) : SongRepository {
             val song = readSongFromFile(file) ?: return@forEach
             if (song.duration < PreferenceUtil.filterLength * 1000L) return@forEach
             songs.add(song)
+            entities.add(song.toScannedSongEntity())
         }
-        return songs
+        return Pair(songs, entities)
     }
 
     private fun readSongFromFile(file: File): Song? {
@@ -187,4 +314,44 @@ class RealSongRepository(private val context: Context) : SongRepository {
             null
         }
     }
+}
+
+private fun Song.toScannedSongEntity(): ScannedSongEntity {
+    val folderPath = data.substringBeforeLast("/")
+    return ScannedSongEntity(
+        id = id,
+        title = title,
+        trackNumber = trackNumber,
+        year = year,
+        duration = duration,
+        data = data,
+        dateModified = dateModified,
+        albumId = albumId,
+        albumName = albumName,
+        artistId = artistId,
+        artistName = artistName,
+        composer = composer,
+        albumArtist = albumArtist,
+        genre = genre,
+        folderPath = folderPath
+    )
+}
+
+private fun ScannedSongEntity.toSong(): Song {
+    return Song(
+        id = id,
+        title = title,
+        trackNumber = trackNumber,
+        year = year,
+        duration = duration,
+        data = data,
+        dateModified = dateModified,
+        albumId = albumId,
+        albumName = albumName,
+        artistId = artistId,
+        artistName = artistName,
+        composer = composer,
+        albumArtist = albumArtist,
+        genre = genre
+    )
 }

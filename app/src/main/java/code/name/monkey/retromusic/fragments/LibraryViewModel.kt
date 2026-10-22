@@ -27,6 +27,7 @@ import code.name.monkey.retromusic.helper.MusicPlayerRemote
 import code.name.monkey.retromusic.interfaces.IMusicServiceEventListener
 import code.name.monkey.retromusic.model.*
 import code.name.monkey.retromusic.repository.RealRepository
+import code.name.monkey.retromusic.repository.ScanProgress
 import code.name.monkey.retromusic.util.DensityUtil
 import code.name.monkey.retromusic.util.PreferenceUtil
 import code.name.monkey.retromusic.util.logD
@@ -34,6 +35,7 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -50,6 +52,7 @@ class LibraryViewModel(
     private val artists = MutableLiveData<List<Artist>>()
     private val playlists = MutableLiveData<List<PlaylistWithSongs>>()
     private val genres = MutableLiveData<List<Genre>>()
+    private val folders = MutableLiveData<List<Folder>>()
     private val searchResults = MutableLiveData<List<Any>>()
     private val fabMargin = MutableLiveData(0)
     private val songHistory = MutableLiveData<List<Song>>()
@@ -57,11 +60,25 @@ class LibraryViewModel(
     private var previousSongHistory = ArrayList<HistoryEntity>()
     val paletteColor: LiveData<Int> = _paletteColor
 
+    private val _scanProgress = MutableLiveData<ScanProgress>()
+    val scanProgressLiveData: LiveData<ScanProgress> = _scanProgress
+
+    private var isScanning = false
+
     init {
         viewModelScope.launch(IO) {
             repository.refreshSongRepository()
         }
         loadLibraryContent()
+        viewModelScope.launch(IO) {
+            repository.scanProgress().collect { progress ->
+                _scanProgress.postValue(progress)
+                if (progress.isComplete) {
+                    isScanning = false
+                    loadLibraryContent()
+                }
+            }
+        }
     }
 
     private fun loadLibraryContent() {
@@ -74,6 +91,7 @@ class LibraryViewModel(
                 async { fetchArtists() },
                 async { fetchGenres() },
                 async { fetchPlaylists() },
+                async { fetchFolders() },
             )
         }
     }
@@ -89,6 +107,12 @@ class LibraryViewModel(
     fun getPlaylists(): LiveData<List<PlaylistWithSongs>> = playlists
 
     fun getGenre(): LiveData<List<Genre>> = genres
+
+    fun getFolders(): LiveData<List<Folder>> = folders
+
+    fun getFolderSongs(folderPath: String): LiveData<List<Song>> = liveData(IO) {
+        emit(repository.fetchSongsByFolder(folderPath))
+    }
 
     fun getHome(): LiveData<List<Home>> = home
 
@@ -120,6 +144,10 @@ class LibraryViewModel(
         genres.postValue(repository.fetchGenres())
     }
 
+    private suspend fun fetchFolders() {
+        folders.postValue(repository.fetchFolders())
+    }
+
     private suspend fun fetchHomeSections() {
         home.postValue(repository.homeSections())
     }
@@ -142,6 +170,7 @@ class LibraryViewModel(
             HomeSections -> fetchHomeSections()
             Playlists -> fetchPlaylists()
             Genres -> fetchGenres()
+            Folders -> fetchFolders()
             Suggestions -> fetchSuggestions()
             PlayCount -> fetchPlayCountSongs()
         }
@@ -153,8 +182,26 @@ class LibraryViewModel(
 
     override fun onMediaStoreChanged() {
         logD("onMediaStoreChanged")
-        repository.refreshSongRepository()
-        loadLibraryContent()
+        if (!isScanning) {
+            viewModelScope.launch(IO) {
+                repository.refreshSongRepository()
+                loadLibraryContent()
+            }
+        }
+    }
+
+    fun startScanWithProgress() {
+        if (isScanning) return
+        isScanning = true
+        viewModelScope.launch(IO) {
+            repository.refreshSongRepositoryWithProgress().collect { progress ->
+                _scanProgress.postValue(progress)
+                if (progress.isComplete) {
+                    isScanning = false
+                    loadLibraryContent()
+                }
+            }
+        }
     }
 
     override fun onServiceConnected() {
@@ -410,6 +457,7 @@ enum class ReloadType {
     HomeSections,
     Playlists,
     Genres,
+    Folders,
     Suggestions,
     PlayCount
 }

@@ -31,24 +31,30 @@ import code.name.monkey.appthemehelper.common.ATHToolbarActivity
 import code.name.monkey.appthemehelper.util.ColorUtil
 import code.name.monkey.appthemehelper.util.ToolbarContentTintHelper
 import code.name.monkey.retromusic.*
+
 import code.name.monkey.retromusic.adapter.HomeAdapter
 import code.name.monkey.retromusic.databinding.FragmentHomeBinding
 import code.name.monkey.retromusic.dialogs.CreatePlaylistDialog
 import code.name.monkey.retromusic.dialogs.ImportPlaylistDialog
 import code.name.monkey.retromusic.extensions.accentColor
 import code.name.monkey.retromusic.extensions.dip
+import code.name.monkey.retromusic.extensions.materialDialog
 
 
 import code.name.monkey.retromusic.fragments.ReloadType
 import code.name.monkey.retromusic.fragments.base.AbsMainActivityFragment
+import code.name.monkey.retromusic.repository.ScanProgress
 import code.name.monkey.retromusic.glide.RetroGlideExtension
 import code.name.monkey.retromusic.glide.RetroGlideExtension.songCoverOptions
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
 import code.name.monkey.retromusic.interfaces.IScrollHelper
+
 import code.name.monkey.retromusic.model.Song
 import code.name.monkey.retromusic.util.PreferenceUtil
 
 import com.bumptech.glide.Glide
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
 import com.google.android.material.transition.MaterialSharedAxis
 
@@ -86,6 +92,7 @@ class HomeFragment :
 
         loadProfile()
         setupTitle()
+        observeScanProgress()
 
         postponeEnterTransition()
         view.doOnPreDraw { startPostponedEnterTransition() }
@@ -96,7 +103,7 @@ class HomeFragment :
 
     private fun adjustPlaylistButtons() {
         val buttons =
-            listOf(binding.history, binding.lastAdded, binding.topPlayed, binding.actionShuffle)
+            listOf(binding.history, binding.lastAdded, binding.actionScan, binding.topPlayed, binding.actionShuffle)
         buttons.maxOf { it.lineCount }.let { maxLineCount ->
             buttons.forEach { button ->
                 // Set the highest line count to every button for consistency
@@ -135,6 +142,10 @@ class HomeFragment :
             setSharedAxisYTransitions()
         }
 
+        binding.actionScan.setOnClickListener {
+            showScanConfirmDialog()
+        }
+
 
         // Reload suggestions
         binding.suggestions.refreshButton.setOnClickListener {
@@ -142,6 +153,17 @@ class HomeFragment :
                 ReloadType.Suggestions
             )
         }
+    }
+
+    private fun showScanConfirmDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.dialog_confirm_scan_title)
+            .setMessage(R.string.dialog_confirm_scan_message)
+            .setPositiveButton(R.string.action_scan) { _, _ ->
+                libraryViewModel.startScanWithProgress()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun setupTitle() {
@@ -155,6 +177,33 @@ class HomeFragment :
 
     private fun loadProfile() {
 
+    }
+
+
+    private fun observeScanProgress() {
+        libraryViewModel.scanProgressLiveData.observe(viewLifecycleOwner) { progress ->
+            if (progress.totalFiles > 0 && !progress.isComplete) {
+                binding.scanProgressCard.isVisible = true
+                binding.scanProgressBar.max = progress.totalFiles
+                binding.scanProgressBar.progress = progress.scannedFiles
+                binding.scanProgressText.text = getString(
+                    R.string.scan_progress_text,
+                    progress.scannedFiles,
+                    progress.totalFiles
+                )
+            } else if (progress.isComplete) {
+                binding.scanProgressCard.isVisible = false
+                if (progress.scannedFiles > 0) {
+                    view?.let { v ->
+                        Snackbar.make(
+                            v,
+                            getString(R.string.scan_complete, progress.scannedFiles),
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun checkForMargins() {

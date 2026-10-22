@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
     namespace = "code.name.monkey.retromusic"
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 29
         targetSdk = 36
 
         vectorDrawables {

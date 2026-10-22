@@ -5,6 +5,7 @@ import code.name.monkey.retromusic.auto.AutoMusicProvider
 
 import code.name.monkey.retromusic.db.MIGRATION_23_24
 import code.name.monkey.retromusic.db.MIGRATION_24_25
+import code.name.monkey.retromusic.db.MIGRATION_25_26
 import code.name.monkey.retromusic.db.RetroDatabase
 
 import code.name.monkey.retromusic.fragments.LibraryViewModel
@@ -26,7 +27,7 @@ private val roomModule = module {
 
     single {
         Room.databaseBuilder(androidContext(), RetroDatabase::class.java, "playlist.db")
-            .addMigrations(MIGRATION_23_24, MIGRATION_24_25)
+            .addMigrations(MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26)
             .build()
     }
 
@@ -40,6 +41,10 @@ private val roomModule = module {
 
     factory {
         get<RetroDatabase>().historyDao()
+    }
+
+    factory {
+        get<RetroDatabase>().scannedSongDao()
     }
 
     single {
@@ -84,7 +89,7 @@ private val dataModule = module {
     } bind Repository::class
 
     single {
-        RealSongRepository(get())
+        RealSongRepository(get(), get())
     } bind SongRepository::class
 
     single {

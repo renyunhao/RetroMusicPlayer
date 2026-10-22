@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/history"
         app:icon="@drawable/ic_history"
         app:layout_constraintEnd_toStartOf="@+id/lastAdded"
@@ -26,12 +26,27 @@
         style="@style/HomeActionButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/last_added"
         app:icon="@drawable/ic_library_add"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/actionScan"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/history"
+        app:layout_constraintTop_toTopOf="@+id/history" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/actionScan"
+        style="@style/HomeActionButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/action_scan"
+        app:icon="@drawable/ic_scanner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/lastAdded"
         app:layout_constraintTop_toTopOf="@+id/history" />
 
     <com.google.android.material.button.MaterialButton
@@ -56,7 +71,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/shuffle"
         app:icon="@drawable/ic_shuffle"
-        app:layout_constraintEnd_toEndOf="@+id/lastAdded"
+        app:layout_constraintEnd_toEndOf="@+id/actionScan"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/topPlayed"
         app:layout_constraintTop_toBottomOf="@+id/lastAdded" />

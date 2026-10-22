@@ -46,7 +46,7 @@ import java.util.StringTokenizer;
 import code.name.monkey.retromusic.Constants;
 import code.name.monkey.retromusic.adapter.Storage;
 import code.name.monkey.retromusic.model.Song;
-import code.name.monkey.retromusic.repository.RealSongRepository;
+import code.name.monkey.retromusic.repository.SongRepository;
 
 public final class FileUtil {
 
@@ -65,11 +65,11 @@ public final class FileUtil {
 
   @NonNull
   public static List<Song> matchFilesWithMediaStore(
-      @NonNull Context context, @Nullable List<File> files) {
+      @NonNull SongRepository songRepository, @Nullable List<File> files) {
     if (files == null || files.isEmpty()) {
       return new ArrayList<>();
     }
-    List<Song> allSongs = new RealSongRepository(context).songs();
+    List<Song> allSongs = songRepository.songs();
     HashSet<String> filePaths = new HashSet<>();
     for (File file : files) {
       filePaths.add(safeGetCanonicalPath(file));

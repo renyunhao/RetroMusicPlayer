@@ -29,10 +29,13 @@ import code.name.monkey.retromusic.network.Result.Success
 import code.name.monkey.retromusic.network.model.LastFmAlbum
 import code.name.monkey.retromusic.network.model.LastFmArtist
 import code.name.monkey.retromusic.util.logE
+import kotlinx.coroutines.flow.Flow
 
 interface Repository {
 
     fun refreshSongRepository()
+    suspend fun refreshSongRepositoryWithProgress(): Flow<ScanProgress>
+    fun scanProgress(): Flow<ScanProgress>
     fun historySong(): List<HistoryEntity>
     fun favorites(): LiveData<List<SongEntity>>
     fun observableHistorySongs(): LiveData<List<Song>>
@@ -97,6 +100,8 @@ interface Repository {
     suspend fun searchAlbums(query: String): List<Album>
     suspend fun isSongFavorite(songId: Long): Boolean
     fun getSongByGenre(genreId: Long): Song
+    suspend fun fetchFolders(): List<Folder>
+    suspend fun fetchSongsByFolder(folderPath: String): List<Song>
     fun checkPlaylistExists(playListId: Long): LiveData<Boolean>
     fun getPlaylist(playlistId: Long): LiveData<PlaylistWithSongs>
 }
@@ -118,6 +123,11 @@ class RealRepository(
 
     override fun refreshSongRepository() = songRepository.refresh()
 
+    override suspend fun refreshSongRepositoryWithProgress(): Flow<ScanProgress> =
+        songRepository.refreshWithProgress()
+
+    override fun scanProgress(): Flow<ScanProgress> = songRepository.scanProgress()
+
     override suspend fun deleteSongs(songs: List<Song>) = roomRepository.deleteSongs(songs)
 
     override suspend fun deleteSongsFromAllPlaylists(songIds: List<Long>) =
@@ -133,6 +143,26 @@ class RealRepository(
         roomRepository.isSongFavorite(context, songId)
 
     override fun getSongByGenre(genreId: Long): Song = genreRepository.song(genreId)
+
+    override suspend fun fetchFolders(): List<Folder> {
+        val allSongs = songRepository.songs()
+        val folderMap = mutableMapOf<String, MutableList<Song>>()
+        for (song in allSongs) {
+            val folderPath = song.data.substringBeforeLast("/")
+            folderMap.getOrPut(folderPath) { mutableListOf() }.add(song)
+        }
+        return folderMap.map { (path, songs) ->
+            Folder(
+                path = path,
+                name = path.substringAfterLast("/"),
+                songCount = songs.size
+            )
+        }.sortedBy { it.name.lowercase() }
+    }
+
+    override suspend fun fetchSongsByFolder(folderPath: String): List<Song> {
+        return songRepository.songs().filter { it.data.startsWith(folderPath) }
+    }
 
     override suspend fun searchArtists(query: String): List<Artist> =
         artistRepository.artists(query)

@@ -40,3 +40,4 @@ const val PLAYLISTS = 7
 const val HISTORY_PLAYLIST = 8
 const val LAST_ADDED_PLAYLIST = 9
 const val TOP_PLAYED_PLAYLIST = 10
+const val FOLDER_PLAYLIST = 11

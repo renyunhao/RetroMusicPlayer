@@ -74,6 +74,9 @@ import code.name.monkey.retromusic.util.getExternalStoragePublicDirectory
 import code.name.monkey.retromusic.views.BreadCrumbLayout
 import code.name.monkey.retromusic.views.BreadCrumbLayout.Crumb
 import code.name.monkey.retromusic.views.BreadCrumbLayout.SelectionCallback
+import code.name.monkey.retromusic.repository.SongRepository
+import org.koin.android.ext.android.inject
+
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
 import kotlinx.coroutines.Dispatchers
@@ -109,6 +112,7 @@ class FoldersFragment : AbsMainActivityFragment(R.layout.fragment_folder),
     }
     private var storageItems = ArrayList<Storage>()
     private val scanViewModel: ScanViewModel by activityViewModels()
+    private val songRepository: SongRepository by inject()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -599,7 +603,7 @@ class FoldersFragment : AbsMainActivityFragment(R.layout.fragment_folder),
         val songs = try {
             val fileList = FileUtil.listFilesDeep(files, fileFilter)
             Collections.sort(fileList, fileComparator)
-            FileUtil.matchFilesWithMediaStore(context, fileList)
+            FileUtil.matchFilesWithMediaStore(songRepository, fileList)
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()

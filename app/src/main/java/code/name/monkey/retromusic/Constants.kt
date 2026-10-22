@@ -57,6 +57,7 @@ object Constants {
 }
 
 const val EXTRA_PLAYLIST_TYPE = "type"
+const val EXTRA_FOLDER_PATH = "extra_folder_path"
 const val EXTRA_GENRE = "extra_genre"
 const val EXTRA_PLAYLIST = "extra_playlist"
 const val EXTRA_PLAYLIST_ID = "extra_playlist_id"
