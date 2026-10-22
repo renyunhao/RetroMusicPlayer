@@ -34,9 +34,7 @@ import code.name.monkey.retromusic.adapter.base.AbsMultiSelectAdapter
 import code.name.monkey.retromusic.adapter.base.MediaEntryViewHolder
 import code.name.monkey.retromusic.extensions.accentColor
 import code.name.monkey.retromusic.glide.RetroGlideExtension
-import code.name.monkey.retromusic.glide.RetroGlideExtension.asBitmapPalette
 import code.name.monkey.retromusic.glide.RetroGlideExtension.songCoverOptions
-import code.name.monkey.retromusic.glide.RetroMusicColoredTarget
 import code.name.monkey.retromusic.helper.MusicPlayerRemote
 import code.name.monkey.retromusic.helper.SortOrder
 import code.name.monkey.retromusic.helper.menu.SongMenuHelper
@@ -101,10 +99,9 @@ open class SongAdapter(
         holder.menu?.isGone = isChecked
         holder.title?.text = getSongTitle(song)
         
-        // Format artist names using ArtistSeparator
-        val formattedArtistName = ArtistSeparator.split(getSongText(song)).joinToString(", ")
-        holder.text?.text = formattedArtistName
-        holder.text2?.text = formattedArtistName
+        // Fast fallback for artist display
+        holder.text?.text = song.artistName
+        holder.text2?.text = song.artistName
 
         if (MusicPlayerRemote.currentSong.id == song.id) {
             val context = holder.title?.context
@@ -145,18 +142,16 @@ open class SongAdapter(
     }
 
     protected open fun loadAlbumCover(song: Song, holder: ViewHolder) {
-        if (holder.image == null) {
-            return
-        }
+        val imageView = holder.image ?: return
+
+        // In-vehicle optimization: Disable dynamic BitmapPalette calculation in song list items
+        // Directly load image with fixed thumbnail bounds (128x128) to eliminate CPU lag
         Glide.with(activity)
-            .asBitmapPalette()
+            .asDrawable()
             .songCoverOptions(song)
+            .override(128, 128)
             .load(RetroGlideExtension.getSongModel(song))
-            .into(object : RetroMusicColoredTarget(holder.image!!) {
-                override fun onColorReady(colors: MediaNotificationProcessor) {
-                    setColors(colors, holder)
-                }
-            })
+            .into(imageView)
     }
 
     private fun getSongTitle(song: Song): String {

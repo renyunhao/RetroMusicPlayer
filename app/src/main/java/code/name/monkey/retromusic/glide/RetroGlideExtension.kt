@@ -46,7 +46,9 @@ object RetroGlideExtension {
 
 
     private val DEFAULT_DISK_CACHE_STRATEGY_ARTIST = DiskCacheStrategy.RESOURCE
-    private val DEFAULT_DISK_CACHE_STRATEGY = DiskCacheStrategy.NONE
+    // In-vehicle optimization: Use AUTOMATIC cache strategy so resized thumbnails are cached to disk.
+    // Avoids repeated expensive MediaMetadataRetriever calls from slow USB/eMMC.
+    private val DEFAULT_DISK_CACHE_STRATEGY = DiskCacheStrategy.AUTOMATIC
 
     private const val DEFAULT_ANIMATION = android.R.anim.fade_in
 

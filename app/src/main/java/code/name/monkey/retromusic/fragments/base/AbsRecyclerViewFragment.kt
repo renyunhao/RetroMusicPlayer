@@ -115,6 +115,8 @@ abstract class AbsRecyclerViewFragment<A : RecyclerView.Adapter<*>, LM : Recycle
 
     private fun setUpRecyclerView() {
         binding.recyclerView.apply {
+            setHasFixedSize(true)
+            setItemViewCacheSize(20)
             layoutManager = this@AbsRecyclerViewFragment.layoutManager
             adapter = this@AbsRecyclerViewFragment.adapter
             create(this)

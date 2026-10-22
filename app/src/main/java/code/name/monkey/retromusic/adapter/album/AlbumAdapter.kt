@@ -26,8 +26,6 @@ import code.name.monkey.retromusic.adapter.base.AbsMultiSelectAdapter
 import code.name.monkey.retromusic.adapter.base.MediaEntryViewHolder
 import code.name.monkey.retromusic.glide.RetroGlideExtension
 import code.name.monkey.retromusic.glide.RetroGlideExtension.albumCoverOptions
-import code.name.monkey.retromusic.glide.RetroGlideExtension.asBitmapPalette
-import code.name.monkey.retromusic.glide.RetroMusicColoredTarget
 import code.name.monkey.retromusic.helper.SortOrder
 import code.name.monkey.retromusic.helper.menu.SongsMenuHelper
 import code.name.monkey.retromusic.interfaces.IAlbumClickListener
@@ -108,20 +106,16 @@ open class AlbumAdapter(
     }
 
     protected open fun loadAlbumCover(album: Album, holder: ViewHolder) {
-        if (holder.image == null) {
-            return
-        }
+        val imageView = holder.image ?: return
         val song = album.safeGetFirstSong()
+
+        // In-vehicle optimization: load thumbnail directly without dynamic Palette calculation
         Glide.with(activity)
-            .asBitmapPalette()
+            .asDrawable()
             .albumCoverOptions(song)
-            //.checkIgnoreMediaStore()
+            .override(200, 200)
             .load(RetroGlideExtension.getSongModel(song))
-            .into(object : RetroMusicColoredTarget(holder.image!!) {
-                override fun onColorReady(colors: MediaNotificationProcessor) {
-                    setColors(colors, holder)
-                }
-            })
+            .into(imageView)
     }
 
     override fun getItemCount(): Int {

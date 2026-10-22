@@ -29,8 +29,6 @@ import code.name.monkey.retromusic.adapter.base.MediaEntryViewHolder
 import code.name.monkey.retromusic.extensions.hide
 import code.name.monkey.retromusic.glide.RetroGlideExtension
 import code.name.monkey.retromusic.glide.RetroGlideExtension.artistImageOptions
-import code.name.monkey.retromusic.glide.RetroGlideExtension.asBitmapPalette
-import code.name.monkey.retromusic.glide.RetroMusicColoredTarget
 import code.name.monkey.retromusic.helper.menu.SongsMenuHelper
 import code.name.monkey.retromusic.interfaces.IAlbumArtistClickListener
 import code.name.monkey.retromusic.interfaces.IArtistClickListener
@@ -108,19 +106,16 @@ class ArtistAdapter(
     }
 
     private fun loadArtistImage(artist: Artist, holder: ViewHolder) {
-        if (holder.image == null) {
-            return
-        }
+        val imageView = holder.image ?: return
+
+        // In-vehicle optimization: load directly without BitmapPalette extraction
         Glide.with(activity)
-            .asBitmapPalette()
+            .asDrawable()
             .artistImageOptions(artist)
+            .override(200, 200)
             .load(RetroGlideExtension.getArtistModel(artist))
             .transition(RetroGlideExtension.getDefaultTransition())
-            .into(object : RetroMusicColoredTarget(holder.image!!) {
-                override fun onColorReady(colors: MediaNotificationProcessor) {
-                    setColors(colors, holder)
-                }
-            })
+            .into(imageView)
     }
 
     override fun getItemCount(): Int {
